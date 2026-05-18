@@ -704,7 +704,7 @@ namespace
             assertStatus (snapshot, "Status: List Blue");
 
             auto sliderBefore = valueOf (findByComponentName (snapshot, "controls.slider"));
-            dragRef (refByComponentName (snapshot, "controls.slider"), 90, 0);
+            dragRef (refByComponentName (snapshot, "controls.slider"), 90, 0, 6);
             snapshot = readSnapshot();
             auto sliderAfter = valueOf (findByComponentName (snapshot, "controls.slider"));
             require (sliderAfter > sliderBefore,

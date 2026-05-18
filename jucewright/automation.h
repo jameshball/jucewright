@@ -3190,50 +3190,53 @@ namespace jucewright
             if (coordinateRoot == nullptr)
                 return;
 
-            if (auto* peer = coordinateRoot->getPeer())
+            if (&target == coordinateRoot)
             {
-                const auto toPeerPoint = [peer, coordinateRoot] (juce::Point<int> rootPoint)
+                if (auto* peer = coordinateRoot->getPeer())
                 {
-                    return peer->getComponent().getLocalPoint (coordinateRoot, rootPoint).toFloat();
-                };
-
-                auto now = juce::Time::currentTimeMillis();
-                auto downModifiers = juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier);
-
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
-                                        toPeerPoint (rootStart),
-                                        juce::ModifierKeys(),
-                                        0.0f,
-                                        0.0f,
-                                        now);
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
-                                        toPeerPoint (rootStart),
-                                        downModifiers,
-                                        1.0f,
-                                        0.0f,
-                                        now + 1);
-
-                for (int i = 1; i <= steps; ++i)
-                {
-                    juce::Point<int> point {
-                        rootStart.x + (rootEnd.x - rootStart.x) * i / steps,
-                        rootStart.y + (rootEnd.y - rootStart.y) * i / steps
+                    const auto toPeerPoint = [peer, coordinateRoot] (juce::Point<int> rootPoint)
+                    {
+                        return peer->getComponent().getLocalPoint (coordinateRoot, rootPoint).toFloat();
                     };
+
+                    auto now = juce::Time::currentTimeMillis();
+                    auto downModifiers = juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier);
+
                     peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
-                                            toPeerPoint (point),
+                                            toPeerPoint (rootStart),
+                                            juce::ModifierKeys(),
+                                            0.0f,
+                                            0.0f,
+                                            now);
+                    peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
+                                            toPeerPoint (rootStart),
                                             downModifiers,
                                             1.0f,
                                             0.0f,
-                                            now + 16 * i);
-                }
+                                            now + 1);
 
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
-                                        toPeerPoint (rootEnd),
-                                        juce::ModifierKeys(),
-                                        0.0f,
-                                        0.0f,
-                                        now + 16 * steps + 1);
-                return;
+                    for (int i = 1; i <= steps; ++i)
+                    {
+                        juce::Point<int> point {
+                            rootStart.x + (rootEnd.x - rootStart.x) * i / steps,
+                            rootStart.y + (rootEnd.y - rootStart.y) * i / steps
+                        };
+                        peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
+                                                toPeerPoint (point),
+                                                downModifiers,
+                                                1.0f,
+                                                0.0f,
+                                                now + 16 * i);
+                    }
+
+                    peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse,
+                                            toPeerPoint (rootEnd),
+                                            juce::ModifierKeys(),
+                                            0.0f,
+                                            0.0f,
+                                            now + 16 * steps + 1);
+                    return;
+                }
             }
 
             auto start = target.getLocalPoint (coordinateRoot, rootStart).toFloat();
@@ -3306,7 +3309,7 @@ namespace jucewright
             {
                 auto* child = component.getChildComponent (i);
 
-                if (child == nullptr || !child->isVisible() || isAutomationSupportComponent (*child))
+                if (child == nullptr || !child->isVisible())
                     continue;
 
                 if (!child->getBounds().contains (localPoint))
@@ -3377,8 +3380,7 @@ namespace jucewright
                 if (component == nullptr
                     || component == rootComponent
                     || component == rootTopLevel
-                    || !component->isShowing()
-                    || isAutomationSupportComponent (*component))
+                    || !component->isShowing())
                 {
                     continue;
                 }
@@ -4305,24 +4307,11 @@ namespace jucewright
             {
                 auto* child = component.getChildComponent (i);
 
-                if (child == nullptr || child == serializedTabbedDocument || isAutomationSupportComponent (*child))
+                if (child == nullptr || child == serializedTabbedDocument)
                     continue;
 
                 children.add (serializeComponent (*child, depth, maxDepth));
             }
-        }
-
-        static bool isAutomationSupportComponent (juce::Component& component)
-        {
-            if (component.getName() == "Melatonin Overlay"
-                || component.getName() == "Melatonin Inspector"
-                || component.getName() == "Undo Manager Inspector")
-                return true;
-
-            auto className = type (component);
-            return className.contains ("melatonin::FPSMeter")
-                   || className.contains ("melatonin::Inspector")
-                   || className.contains ("melatonin::UndoManagerInspector");
         }
 
         static void appendTextSnapshot (juce::String& out, const juce::var& node, int indent)
@@ -4801,15 +4790,9 @@ namespace jucewright
     };
 #endif
 
-    inline juce::String environmentVariableWithFallback (const juce::String& primary,
-                                                         const juce::String& fallback = {},
-                                                         const juce::String& defaultValue = {})
+    inline juce::String environmentVariableOrDefault (const juce::String& name, const juce::String& defaultValue = {})
     {
-        auto value = juce::SystemStats::getEnvironmentVariable (primary, {});
-
-        if (value.isEmpty() && fallback.isNotEmpty())
-            value = juce::SystemStats::getEnvironmentVariable (fallback, {});
-
+        auto value = juce::SystemStats::getEnvironmentVariable (name, {});
         return value.isEmpty() ? defaultValue : value;
     }
 
@@ -4837,7 +4820,7 @@ namespace jucewright
                                     const juce::String& extraTriggerEnvironmentVariable = {})
         {
 #if JUCEWRIGHT_ENABLE_AUTOMATION
-            const auto trigger = environmentVariableWithFallback ("JUCEWRIGHT_AUTOMATION", "MELATONIN_INSPECTOR_AUTOMATION");
+            const auto trigger = environmentVariableOrDefault ("JUCEWRIGHT_AUTOMATION");
             const auto extraTrigger = extraTriggerEnvironmentVariable.isNotEmpty()
                                           ? juce::SystemStats::getEnvironmentVariable (extraTriggerEnvironmentVariable, {})
                                           : juce::String();
@@ -4846,12 +4829,9 @@ namespace jucewright
                 return false;
 
             AutomationOptions options;
-            options.sessionName = environmentVariableWithFallback ("JUCEWRIGHT_SESSION",
-                                                                   "MELATONIN_INSPECTOR_SESSION",
-                                                                   defaultSessionName);
+            options.sessionName = environmentVariableOrDefault ("JUCEWRIGHT_SESSION", defaultSessionName);
 
-            const auto artifactRootPath = environmentVariableWithFallback ("JUCEWRIGHT_ARTIFACT_ROOT",
-                                                                           "MELATONIN_INSPECTOR_ARTIFACT_ROOT");
+            const auto artifactRootPath = environmentVariableOrDefault ("JUCEWRIGHT_ARTIFACT_ROOT");
             options.allowFileWrite = true;
             options.artifactRoot = artifactRootPath.isNotEmpty()
                                        ? juce::File::createFileWithoutCheckingPath (artifactRootPath)

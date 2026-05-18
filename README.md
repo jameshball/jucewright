@@ -86,10 +86,3 @@ JUCEWRIGHT_BUILD_DIR="$PWD/Builds" Builds/automation_fixture_artefacts/automatio
 
 See [docs/automation-protocol.md](docs/automation-protocol.md) for the full
 protocol and command reference.
-
-## Origin
-
-Jucewright was extracted from automation work originally developed inside
-[`melatonin_inspector`](https://github.com/sudara/melatonin_inspector). The
-module keeps the automation layer independent from the visual inspector while
-retaining MIT licensing.

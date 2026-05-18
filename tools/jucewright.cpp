@@ -291,11 +291,6 @@ namespace
         add ("JUCEWRIGHT_SESSION", sessionName);
         add ("JUCEWRIGHT_ARTIFACT_ROOT", artifactDir.getFullPathName());
 
-        // Compatibility for apps still using the original in-inspector automation hook.
-        add ("MELATONIN_INSPECTOR_AUTOMATION", "1");
-        add ("MELATONIN_INSPECTOR_SESSION", sessionName);
-        add ("MELATONIN_INSPECTOR_ARTIFACT_ROOT", artifactDir.getFullPathName());
-
 #if JUCE_MAC
         add ("HOME", home.getFullPathName());
         add ("CFFIXED_USER_HOME", home.getFullPathName());
