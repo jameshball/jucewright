@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        juce-ref: [develop]
+        include:
+          - os: ubuntu-latest
+            juce-ref: 7.0.12
+          - os: windows-latest
+            juce-ref: 7.0.12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libfontconfig1-dev libfreetype-dev libglu1-mesa-dev libjack-jackd2-dev libcurl4-openssl-dev ninja-build xvfb
+          if apt-cache show libwebkit2gtk-4.1-dev >/dev/null 2>&1; then
+            sudo apt-get install -y libwebkit2gtk-4.1-dev
+          else
+            sudo apt-get install -y libwebkit2gtk-4.0-dev
+          fi
+
+      - name: Configure
+        run: cmake -S . -B Builds -DJUCEWRIGHT_BUILD_CLI=ON -DJUCEWRIGHT_BUILD_TESTS=ON -DJUCEWRIGHT_JUCE_GIT_TAG=${{ matrix.juce-ref }}
+
+      - name: Build
+        run: cmake --build Builds --parallel 4
+
+      - name: Run automation fixture
+        if: runner.os == 'Linux'
+        env:
+          JUCEWRIGHT_BUILD_DIR: ${{ github.workspace }}/Builds
+          JUCEWRIGHT_SCREENSHOT_DIR: ${{ github.workspace }}/Builds/automation-evidence
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: |
+          mkdir -p "$JUCEWRIGHT_SCREENSHOT_DIR"
+          xvfb-run -a Builds/automation_fixture_artefacts/automation_fixture
+
+      - name: Upload automation evidence
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-evidence
+          path: Builds/automation-evidence
+          if-no-files-found: ignore
