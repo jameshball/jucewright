@@ -608,7 +608,7 @@ Options:
 | --- | --- |
 | `target` | `root` or a window id from `windows`. |
 | `ref` / `locator` | Capture a component instead of a whole window. |
-| `source` | `component`, `native`, or `auto`. CLI default is `component`. |
+| `source` | `component`, `native`, or `auto`. CLI and MCP default to `auto`. |
 | `file` | Output path. Requires `allowFileWrite=true`. |
 | `clipX`, `clipY`, `clipW`, `clipH` | Component-local clip rectangle. |
 | `scale` | Output scale, greater than 0 and no more than 4. |

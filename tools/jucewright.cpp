@@ -1831,7 +1831,7 @@ namespace
             << "  jucewright -s <session> count [locator options] [--timeout-ms n]\n"
             << "  jucewright -s <session> describe <ref>|[locator options] [--depth n] [--full|--interesting|--minimal] [--timeout-ms n]\n"
             << "  jucewright -s <session> snapshot [--json|--format text|json] [--full|--interesting|--minimal] [--depth n] [--ref ref] [locator options] [--timeout-ms n]\n"
-            << "  jucewright -s <session> screenshot [--target root|--ref m1-1] [--source auto|component|native] [--base64] [--timeout-ms n] [locator options] --file /tmp/root.png\n"
+            << "  jucewright -s <session> screenshot [--target root|--ref m1-1] [--source auto|component|native] [--base64|--no-base64] [--clip-x n --clip-y n --clip-w n --clip-h n] [--timeout-ms n] [locator options] --file /tmp/root.png\n"
             << "  jucewright -s <session> click <ref>|[locator options] [--button left|right|middle] [--click-count n] [--position x,y]\n"
             << "  jucewright -s <session> dblclick <ref>|[locator options]\n"
             << "  jucewright -s <session> right-click <ref>|[locator options] [--menu-item name]\n"
@@ -1861,9 +1861,13 @@ namespace
             << "  jucewright -s <session> set-bounds <ref> --x n --y n --w n --h n\n"
             << "  jucewright -s <session> set-property <ref> <name> <value>\n"
             << "  jucewright -s <session> wait --ms n\n"
+            << "  jucewright -s <session> wait-for-ref <ref> [--timeout-ms n]\n"
+            << "  jucewright -s <session> wait-for-locator [locator options] [--timeout-ms n]\n"
             << "  jucewright -s <session> wait-for-text <text> [--timeout-ms n]\n"
+            << "  jucewright -s <session> wait-for-value <ref>|[locator options] --value value [--timeout-ms n]\n"
+            << "  jucewright -s <session> wait-for-snapshot-change --state-hash hash [--timeout-ms n]\n"
             << "\nSnapshot defaults to a compact interesting tree. Use --full for the complete component dump.\n"
-            << "Screenshot base64 is off by default for CLI; use --base64 to include it.\n";
+            << "Screenshot base64 is off by default for CLI; use --base64 to include it. Use --clip-x/y/w/h to crop.\n";
     }
 
     juce::String popFront (juce::StringArray& args)
