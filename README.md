@@ -7,6 +7,20 @@ tree, plus a native CLI/MCP server that can snapshot, locate, screenshot, and
 interact with JUCE controls. It is designed for local development, E2E tests,
 and LLM agents that need to browse native JUCE UIs without human involvement.
 
+## Origin and credit
+
+Jucewright was extracted from automation work that started inside
+[melatonin_inspector](https://github.com/sudara/melatonin_inspector), Sudara
+Williams' MIT-licensed JUCE component inspector. The original
+`melatonin_inspector` project is a visual inspection/editing tool for JUCE UI
+trees; Jucewright keeps that lineage and license credit while focusing the
+surface area on generic Playwright-style automation, CLI, MCP, launch, snapshot,
+screenshot, and interaction workflows.
+
+The project intentionally uses Jucewright names for its public API, environment
+variables, CLI executable, and MCP server. References to `melatonin_inspector`
+are kept as origin credit, not as supported compatibility aliases.
+
 ## Usage
 
 Add the module after JUCE:
