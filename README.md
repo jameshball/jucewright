@@ -22,6 +22,20 @@ target_link_libraries(YourTarget PRIVATE jucewright)
 target_compile_definitions(YourTarget PRIVATE JUCEWRIGHT_ENABLE_AUTOMATION=1)
 ```
 
+### Projucer
+
+Add the repository as a submodule or checkout next to your other JUCE modules:
+
+```sh
+git submodule add https://github.com/jameshball/jucewright.git modules/jucewright
+```
+
+In Projucer, add the `jucewright` module and set its module path to the
+Jucewright repository root, for example `modules/jucewright`. Then add
+`JUCEWRIGHT_ENABLE_AUTOMATION=1` to the target/exporter preprocessor definitions
+where you want automation compiled in, typically Debug builds only. Resave the
+project and include the header from your editor/root component.
+
 Enable the endpoint on your editor or root component:
 
 ```cpp
@@ -69,6 +83,28 @@ jucewright -s my-plugin locator --role button --name Apply --format json
 jucewright -s my-plugin click --role button --name Apply
 jucewright -s my-plugin screenshot --target root --file root.png
 jucewright mcp
+```
+
+## MCP installation
+
+Jucewright's MCP server is stdio-based and is launched with `jucewright mcp`.
+After building the CLI, install it in Codex with the absolute path to the
+executable:
+
+```sh
+codex mcp add jucewright -- /absolute/path/to/jucewright mcp
+```
+
+If the executable path is inside a build directory that may change, use a small
+wrapper script instead and register that script:
+
+```sh
+#!/usr/bin/env bash
+exec /absolute/path/to/jucewright mcp "$@"
+```
+
+```sh
+codex mcp add jucewright -- /absolute/path/to/jucewright-mcp.sh
 ```
 
 The CLI also includes a generic launcher for standalone JUCE apps:
