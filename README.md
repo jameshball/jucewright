@@ -95,18 +95,6 @@ executable:
 codex mcp add jucewright -- /absolute/path/to/jucewright mcp
 ```
 
-If the executable path is inside a build directory that may change, use a small
-wrapper script instead and register that script:
-
-```sh
-#!/usr/bin/env bash
-exec /absolute/path/to/jucewright mcp "$@"
-```
-
-```sh
-codex mcp add jucewright -- /absolute/path/to/jucewright-mcp.sh
-```
-
 The CLI also includes a generic launcher for standalone JUCE apps:
 
 ```sh
