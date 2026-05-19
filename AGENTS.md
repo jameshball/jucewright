@@ -6,6 +6,7 @@
 - Keep those docs updated when behavior changes.
 - Keep the README origin credit and MIT license notice intact.
 - Do not edit build artifacts under `Builds/`.
+- For builds, tests, deployments, and exhaustive automation runs, prefer one blocking command with a long timeout and wait for completion. Avoid frequent short polling or progress checks unless the user asks for live updates or the command is genuinely interactive.
 
 ```bash
 cmake -S . -B Builds -DJUCEWRIGHT_BUILD_CLI=ON -DJUCEWRIGHT_BUILD_TESTS=ON
