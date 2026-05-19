@@ -18,7 +18,7 @@ Add the module after JUCE:
 
 ```cmake
 add_subdirectory(path/to/jucewright)
-target_link_libraries(YourTarget PRIVATE jucewright)
+target_link_libraries(YourTarget PRIVATE Jucewright::Jucewright)
 target_compile_definitions(YourTarget PRIVATE JUCEWRIGHT_ENABLE_AUTOMATION=1)
 ```
 
@@ -122,8 +122,11 @@ On macOS it launches `.app` bundles through `open` with `HOME` and
 ```sh
 cmake -S . -B Builds -DJUCEWRIGHT_BUILD_TESTS=ON
 cmake --build Builds --target automation_fixture --parallel 4
-JUCEWRIGHT_BUILD_DIR="$PWD/Builds" Builds/automation_fixture_artefacts/automation_fixture
+JUCEWRIGHT_BUILD_DIR="$PWD/Builds" Builds/automation_fixture_artefacts/automation_fixture.app/Contents/MacOS/automation_fixture
 ```
+
+On Linux and Windows, run the executable emitted under
+`Builds/automation_fixture_artefacts/` for the chosen CMake configuration.
 
 See [docs/automation-protocol.md](docs/automation-protocol.md) for the full
 protocol and command reference.

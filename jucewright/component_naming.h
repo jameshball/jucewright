@@ -110,6 +110,81 @@ namespace jucewright
         return {};
     }
 
+    static inline juce::String textForNearbyLabellingComponent (juce::Component& component)
+    {
+        if (auto* label = dynamic_cast<juce::Label*> (&component))
+            return limitedComponentText (label->getText());
+
+        if (auto* group = dynamic_cast<juce::GroupComponent*> (&component))
+            return limitedComponentText (group->getText());
+
+        return {};
+    }
+
+    static inline juce::String normalizedComponentText (juce::String text)
+    {
+        text = text.retainCharacters ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789").toLowerCase();
+        return text.trim();
+    }
+
+    static inline bool isGenericComponentText (juce::Component& component, const juce::String& text)
+    {
+        const auto normalized = normalizedComponentText (text);
+
+        if (normalized.isEmpty())
+            return true;
+
+        const auto className = type (component);
+        auto leafClassName = className.fromLastOccurrenceOf ("::", false, false);
+
+        if (leafClassName.contains ("<"))
+            leafClassName = leafClassName.upToFirstOccurrenceOf ("<", false, false);
+
+        juce::StringArray genericNames;
+        genericNames.add (className);
+        genericNames.add (leafClassName);
+        genericNames.add (humanizeIdentifier (className));
+        genericNames.add (humanizeIdentifier (leafClassName));
+        genericNames.add (trimComponentSuffix (leafClassName));
+
+        for (const auto& genericName : genericNames)
+            if (normalized == normalizedComponentText (genericName))
+                return true;
+
+        return normalized == "component" || normalized == "button" || normalized == "switchbutton";
+    }
+
+    static inline juce::String explicitOwnComponentText (juce::Component& component)
+    {
+        if (component.isAccessible() && component.getAccessibilityHandler() != nullptr)
+        {
+            auto title = limitedComponentText (component.getAccessibilityHandler()->getTitle());
+
+            if (title.isNotEmpty() && ! isGenericComponentText (component, title))
+                return title;
+        }
+
+        auto name = limitedComponentText (component.getName());
+
+        if (name.isNotEmpty() && ! isGenericComponentText (component, name))
+            return name;
+
+        return {};
+    }
+
+    static inline juce::String parentCompositeName (juce::Component& component)
+    {
+        auto* parent = component.getParentComponent();
+
+        if (parent == nullptr)
+            return {};
+
+        if (auto text = explicitOwnComponentText (*parent); text.isNotEmpty())
+            return text;
+
+        return {};
+    }
+
     static inline int overlapOnAxis (int startA, int endA, int startB, int endB)
     {
         return juce::jmax (0, juce::jmin (endA, endB) - juce::jmax (startA, startB));
@@ -133,7 +208,7 @@ namespace jucewright
             if (sibling == nullptr || sibling == &target || ! sibling->isShowing())
                 continue;
 
-            const auto text = textForLabellingComponent (*sibling);
+            const auto text = textForNearbyLabellingComponent (*sibling);
 
             if (text.isEmpty())
                 continue;
@@ -168,12 +243,8 @@ namespace jucewright
             return juce::String ("Editor: ") + editor->getAudioProcessor()->getName();
        #endif
 
-        if (component->isAccessible() && component->getAccessibilityHandler() != nullptr
-            && component->getAccessibilityHandler()->getTitle().isNotEmpty())
-            return component->getAccessibilityHandler()->getTitle();
-
-        if (component->getName().isNotEmpty())
-            return component->getName();
+        if (auto text = explicitOwnComponentText (*component); text.isNotEmpty())
+            return text;
 
         if (auto* button = dynamic_cast<juce::Button*> (component))
             if (auto text = limitedComponentText (button->getButtonText()); text.isNotEmpty())
@@ -190,6 +261,9 @@ namespace jucewright
         if (auto* tooltip = dynamic_cast<juce::TooltipClient*> (component))
             if (auto text = limitedComponentText (tooltip->getTooltip()); text.isNotEmpty())
                 return text;
+
+        if (auto text = parentCompositeName (*component); text.isNotEmpty())
+            return text;
 
         if (auto text = nearbyLabelText (*component); text.isNotEmpty())
             return text;

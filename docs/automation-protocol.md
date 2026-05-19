@@ -21,7 +21,8 @@ Known current limitations:
 - `snapshot --since` reports that a snapshot changed and returns current
   context; it is not yet a true structural diff of added, removed, and updated
   nodes.
-- Refs are short-lived snapshot refs, not persistent component identities.
+- Refs are retained for recent snapshots while their components are still alive,
+  but locators are still preferred for reusable scripts.
 - If multiple sessions use the same `sessionName`, CLI/MCP selection currently
   chooses the newest reachable matching advertisement.
 - The endpoint binds to `127.0.0.1` and is intended for trusted local
@@ -54,7 +55,7 @@ automation.enable (rootComponent, options);
 | `port` | `0` | Local TCP port. `0` lets the OS choose a free port. |
 | `advertise` | `true` | Write a session advertisement file so CLI/MCP can discover the app. |
 | `allowInput` | `true` | Allow user-like input and semantic control actions. |
-| `allowMutation` | `true` | Allow automation mutations such as bounds/properties. |
+| `allowMutation` | `true` | Allow automation mutations such as window resizing. |
 | `allowFileWrite` | `false` | Allow endpoint-side screenshot and trace files. |
 | `artifactRoot` | empty | Optional directory that file output must stay inside. |
 
@@ -235,8 +236,7 @@ juce_set_checked
 juce_set_value
 juce_select_option
 juce_select_tab
-juce_set_bounds
-juce_set_property
+juce_resize_window
 ```
 
 Wait MCP tools:
@@ -364,6 +364,11 @@ Matching behavior:
 
 - `componentId` and `testId` both match `Component::getComponentID()`.
 - `componentName` matches `Component::getName()`.
+- `name` is the user-facing automation name. It prefers explicit
+  accessibility titles and component names, then native control text, then a
+  useful composite parent name for generic inner controls such as unnamed
+  switches. Nearby labels/groups can name adjacent controls, but adjacent
+  buttons are not treated as labels.
 - Text fields normalize whitespace and are case-insensitive.
 - `exact: true` switches string matching from contains to equality.
 - Locator actions are strict: zero matches fail; multiple matches fail unless
@@ -382,16 +387,16 @@ jucewright -s MyPlugin fill --component-name username "james"
 
 ## Refs
 
-Snapshots assign refs like `m1-4`. A ref points to a component in the current
-snapshot generation.
+Snapshots assign refs like `m1-4`. A ref points to a live component discovered
+by a recent snapshot.
 
 Important rules:
 
-- Refs are not stable across snapshots.
-- Take a fresh snapshot before using refs.
+- Refs remain usable across later snapshots/actions while the same component is
+  still alive and the bounded ref cache has not evicted them.
 - Prefer locators for robust scripts and LLM workflows.
-- `stale_ref` means the ref is unknown to the current endpoint state; run a new
-  snapshot or use a locator.
+- `stale_ref` means the ref is unknown, evicted, or the component was destroyed;
+  run a new snapshot or use a locator.
 
 ## Snapshots
 
@@ -566,15 +571,14 @@ jucewright -s MyPlugin drag-to m1-4 m1-9 --steps 10
 jucewright -s MyPlugin drag-to --component-name source --target-component-name target
 ```
 
-Mutation tools:
+Window resizing:
 
 ```sh
-jucewright -s MyPlugin set-bounds m1-4 --x 20 --y 40 --w 200 --h 48
-jucewright -s MyPlugin set-property m1-4 alpha 0.5
-jucewright -s MyPlugin set-property m1-4 visible false
+jucewright -s MyPlugin resize-window --w 900 --h 640
+jucewright -s MyPlugin resize-window window-1 --w 480 --h 320
 ```
 
-Mutation tools require `allowMutation=true`.
+Window resizing requires `allowMutation=true`.
 
 ## Waits
 
@@ -709,7 +713,7 @@ cmake -S . -B /tmp/jucewright-demorunner \
   -DJUCEWRIGHT_BUILD_DEMORUNNER_AUTOMATION=ON \
   -DJUCEWRIGHT_BUILD_CLI=ON \
   -DJUCEWRIGHT_ENABLE_AUTOMATION=ON
-cmake --build /tmp/jucewright-demorunner --target jucewright-demorunner jucewright_cli --parallel 4
+cmake --build /tmp/jucewright-demorunner --target jucewright-demorunner-e2e --parallel 4
 ```
 
 The generated app advertises as:

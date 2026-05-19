@@ -10,5 +10,5 @@
 ```bash
 cmake -S . -B Builds -DJUCEWRIGHT_BUILD_CLI=ON -DJUCEWRIGHT_BUILD_TESTS=ON
 cmake --build Builds --target jucewright_cli automation_fixture --parallel 8
-JUCEWRIGHT_BUILD_DIR="$PWD/Builds" Builds/automation_fixture_artefacts/automation_fixture
+JUCEWRIGHT_BUILD_DIR="$PWD/Builds" Builds/automation_fixture_artefacts/automation_fixture.app/Contents/MacOS/automation_fixture
 ```
