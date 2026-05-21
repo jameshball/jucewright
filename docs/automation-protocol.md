@@ -36,7 +36,21 @@ Build the target with automation enabled:
 target_compile_definitions(YourProject PRIVATE JUCEWRIGHT_ENABLE_AUTOMATION=1)
 ```
 
-Enable automation on a JUCE root component:
+The preferred app integration is a single member on the root component. It only
+starts automation when the environment requests it, and its default session name
+comes from the JUCE project/plugin name, then the running JUCE application name:
+
+```cpp
+jucewright::EnvironmentAutomation automation { *this };
+```
+
+Pass a name only when the default is not what the harness should discover:
+
+```cpp
+jucewright::EnvironmentAutomation automation { *this, "MyPlugin" };
+```
+
+For manual control, enable automation explicitly on a JUCE root component:
 
 ```cpp
 jucewright::Automation automation;

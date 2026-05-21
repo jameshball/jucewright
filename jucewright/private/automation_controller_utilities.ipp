@@ -454,10 +454,7 @@
 
         static juce::String defaultSessionName()
         {
-            if (auto* app = juce::JUCEApplicationBase::getInstance())
-                return app->getApplicationName();
-
-            return "jucewright";
+            return defaultAutomationSessionName();
         }
 
         static juce::File sessionsDirectory()

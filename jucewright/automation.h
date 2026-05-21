@@ -39,6 +39,8 @@ namespace jucewright
         return value.isEmpty() ? defaultValue : value;
     }
 
+    [[nodiscard]] juce::String defaultAutomationSessionName();
+
     class Automation
     {
     public:
@@ -47,7 +49,7 @@ namespace jucewright
 
         void enable (juce::Component& rootComponent, AutomationOptions options = {});
         bool enableFromEnvironment (juce::Component& rootComponent,
-                                    const juce::String& defaultSessionName,
+                                    const juce::String& defaultSessionName = {},
                                     const juce::String& extraTriggerEnvironmentVariable = {});
         void updateRoot (juce::Component& rootComponent);
         void clearRoot();
@@ -59,5 +61,21 @@ namespace jucewright
 #if JUCEWRIGHT_ENABLE_AUTOMATION
         std::unique_ptr<AutomationController> controller;
 #endif
+    };
+
+    class EnvironmentAutomation
+    {
+    public:
+        explicit EnvironmentAutomation (juce::Component& rootComponent,
+                                        juce::String defaultSessionName = {},
+                                        juce::String extraTriggerEnvironmentVariable = {});
+        ~EnvironmentAutomation();
+
+        EnvironmentAutomation (const EnvironmentAutomation&) = delete;
+        EnvironmentAutomation& operator= (const EnvironmentAutomation&) = delete;
+
+    private:
+        struct State;
+        std::shared_ptr<State> state;
     };
 }
