@@ -78,7 +78,7 @@
             require (security.getProperty ("artifactRoot").toString() == screenshotDirectory.getFullPathName(),
                      "capabilities returned the wrong artifact root");
 
-            runCli ({ "-s", sessionName, "wait", "--ms", "5500" });
+            runCli ({ "-s", sessionName, "wait", "--ms", "1000" });
 
             auto windows = parseJsonOutput (runCli ({ "-s", sessionName, "windows" }), "windows");
             auto windowsArray = asObject (windows, "windows").getProperty ("windows");
