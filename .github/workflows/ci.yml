@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Configure
-        run: cmake -S . -B Builds -DJUCEWRIGHT_BUILD_CLI=ON -DJUCEWRIGHT_BUILD_TESTS=ON -DJUCEWRIGHT_JUCE_GIT_TAG=${{ matrix.juce-ref }}
+        run: cmake -S . -B Builds -DJUCEWRIGHT_BUILD_CLI=ON -DJUCEWRIGHT_BUILD_TESTS=ON -DJUCEWRIGHT_JUCE_GIT_TAG:STRING="${{ matrix.juce-ref }}"
 
       - name: Build
         run: cmake --build Builds --parallel 4
