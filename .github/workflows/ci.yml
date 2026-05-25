@@ -41,19 +41,23 @@ jobs:
         run: cmake --build Builds --parallel 4
 
       - name: Run automation fixture
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         env:
           JUCEWRIGHT_BUILD_DIR: ${{ github.workspace }}/Builds
           JUCEWRIGHT_SCREENSHOT_DIR: ${{ github.workspace }}/Builds/automation-evidence
           LIBGL_ALWAYS_SOFTWARE: "1"
         run: |
           mkdir -p "$JUCEWRIGHT_SCREENSHOT_DIR"
-          xvfb-run -a Builds/automation_fixture_artefacts/automation_fixture
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run -a Builds/automation_fixture_artefacts/automation_fixture
+          else
+            Builds/automation_fixture_artefacts/automation_fixture.app/Contents/MacOS/automation_fixture
+          fi
 
       - name: Upload automation evidence
-        if: always() && runner.os == 'Linux'
+        if: always() && (runner.os == 'Linux' || runner.os == 'macOS')
         uses: actions/upload-artifact@v4
         with:
-          name: automation-evidence
+          name: automation-evidence-${{ matrix.os }}-${{ matrix.juce-ref }}
           path: Builds/automation-evidence
           if-no-files-found: ignore
