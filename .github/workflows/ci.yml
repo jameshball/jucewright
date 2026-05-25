@@ -16,9 +16,9 @@ jobs:
         juce-ref: [develop]
         include:
           - os: ubuntu-latest
-            juce-ref: 7.0.12
+            juce-ref: "7.0.12"
           - os: windows-latest
-            juce-ref: 7.0.12
+            juce-ref: "7.0.12"
 
     steps:
       - uses: actions/checkout@v4
