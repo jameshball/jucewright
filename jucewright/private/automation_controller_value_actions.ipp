@@ -194,6 +194,7 @@
             auto menuNames = model->getMenuBarNames();
             int flatIndex = 0;
             const auto exact = (bool) params.getProperty ("exact");
+            const auto followUpMenuItem = getString (params, "menuItem", {});
 
             for (int menuIndex = 0; menuIndex < menuNames.size(); ++menuIndex)
             {
@@ -232,6 +233,9 @@
                         else if (item.itemID != 0)
                             model->menuItemSelected (item.itemID, menuIndex);
 
+                        if (followUpMenuItem.isNotEmpty())
+                            return selectVisibleMenuItem (params, followUpMenuItem);
+
                         return snapshotAfterAction();
                     }
 
@@ -240,6 +244,68 @@
             }
 
             return error ("option_not_found", "Menu item not found: " + text);
+        }
+
+        juce::var selectVisibleMenuItem (juce::DynamicObject& params, const juce::String& menuItem)
+        {
+            auto* menuLocator = new juce::DynamicObject();
+            menuLocator->setProperty ("class", "juce::PopupMenu::HelperClasses::ItemComponent");
+            menuLocator->setProperty ("name", menuItem);
+
+            if (! params.getProperty ("exact").isVoid())
+                menuLocator->setProperty ("exact", params.getProperty ("exact"));
+
+            juce::DynamicObject menuParams;
+            menuParams.setProperty ("locator", juce::var (menuLocator));
+            menuParams.setProperty ("force", true);
+
+            const auto deadline = juce::Time::currentTimeMillis() + juce::jlimit (0, 30000, getInt (params, "timeoutMs", 5000));
+            juce::var lastResult;
+
+            do
+            {
+                auto item = resolveTarget (menuParams, true, true);
+
+                if (item.error.isVoid())
+                {
+                    if (auto* coordinateRoot = coordinateRootFor (*item.component))
+                    {
+                        const auto rootBounds = getRootBounds (*item.component);
+                        synthesizeClickAt (*coordinateRoot, rootBounds.getCentre());
+                    }
+                    else
+                    {
+                        synthesizeComponentClick (*item.component, juce::ModifierKeys(), 1, targetCentreLocal (*item.component));
+                    }
+
+                    waitForVisibleMenuWork (150);
+                    return snapshotAfterAction();
+                }
+
+                lastResult = item.error;
+
+                if (auto* errorObject = item.error.getDynamicObject())
+                {
+                    const auto code = errorObject->getProperty ("__error").toString();
+
+                    if (code != "locator_not_found" && code != "stale_ref")
+                        return item.error;
+                }
+
+                waitForVisibleMenuWork (25);
+            } while (juce::Time::currentTimeMillis() < deadline && ! threadShouldExit());
+
+            juce::ignoreUnused (lastResult);
+            return error ("option_not_found", "Popup menu item not found: " + menuItem);
+        }
+
+        static void waitForVisibleMenuWork (int milliseconds)
+        {
+        #if JUCE_MODAL_LOOPS_PERMITTED
+            juce::MessageManager::getInstance()->runDispatchLoopUntil (milliseconds);
+        #else
+            juce::Thread::sleep (milliseconds);
+        #endif
         }
 
         juce::var selectListBoxRow (juce::ListBox& listBox, juce::DynamicObject& params, const juce::String& text)

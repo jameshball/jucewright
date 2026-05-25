@@ -181,8 +181,9 @@
     {
         std::vector<wchar_t> result;
 
-        for (auto character = text.toWideCharPointer(); ! character.isEmpty();)
-            result.push_back ((wchar_t) character.getAndAdvance());
+        for (auto* character = text.toWideCharPointer(); *character != L'\0'; ++character) {
+            result.push_back (*character);
+        }
 
         result.push_back (L'\0');
         return result;
@@ -245,6 +246,21 @@
                             nullptr);
     }
 
+    HANDLE createWindowsNullInput()
+    {
+        SECURITY_ATTRIBUTES attributes {};
+        attributes.nLength = sizeof (attributes);
+        attributes.bInheritHandle = TRUE;
+
+        return CreateFileW (L"NUL",
+                            GENERIC_READ,
+                            FILE_SHARE_READ | FILE_SHARE_WRITE,
+                            &attributes,
+                            OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr);
+    }
+
     void launchWindowsApp (const juce::File& app,
                            const juce::StringArray& appArgs,
                            const juce::StringArray& environment,
@@ -262,12 +278,49 @@
             throw std::runtime_error (windowsLastErrorMessage ("CreateFile stderr").toStdString());
         }
 
-        STARTUPINFOW startupInfo {};
-        startupInfo.cb = sizeof (startupInfo);
-        startupInfo.dwFlags = STARTF_USESTDHANDLES;
-        startupInfo.hStdInput = GetStdHandle (STD_INPUT_HANDLE);
-        startupInfo.hStdOutput = stdoutHandle;
-        startupInfo.hStdError = stderrHandle;
+        auto stdinHandle = createWindowsNullInput();
+        if (stdinHandle == INVALID_HANDLE_VALUE)
+        {
+            CloseHandle (stdoutHandle);
+            CloseHandle (stderrHandle);
+            throw std::runtime_error (windowsLastErrorMessage ("CreateFile stdin").toStdString());
+        }
+
+        STARTUPINFOEXW startupInfo {};
+        startupInfo.StartupInfo.cb = sizeof (startupInfo);
+        startupInfo.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+        startupInfo.StartupInfo.hStdInput = stdinHandle;
+        startupInfo.StartupInfo.hStdOutput = stdoutHandle;
+        startupInfo.StartupInfo.hStdError = stderrHandle;
+
+        SIZE_T attributeListSize = 0;
+        InitializeProcThreadAttributeList (nullptr, 1, 0, &attributeListSize);
+        std::vector<std::uint8_t> attributeListStorage (attributeListSize);
+        startupInfo.lpAttributeList = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST> (attributeListStorage.data());
+
+        if (! InitializeProcThreadAttributeList (startupInfo.lpAttributeList, 1, 0, &attributeListSize))
+        {
+            CloseHandle (stdinHandle);
+            CloseHandle (stdoutHandle);
+            CloseHandle (stderrHandle);
+            throw std::runtime_error (windowsLastErrorMessage ("InitializeProcThreadAttributeList").toStdString());
+        }
+
+        HANDLE inheritedHandles[] { stdinHandle, stdoutHandle, stderrHandle };
+        if (! UpdateProcThreadAttribute (startupInfo.lpAttributeList,
+                                         0,
+                                         PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                                         inheritedHandles,
+                                         sizeof (inheritedHandles),
+                                         nullptr,
+                                         nullptr))
+        {
+            DeleteProcThreadAttributeList (startupInfo.lpAttributeList);
+            CloseHandle (stdinHandle);
+            CloseHandle (stdoutHandle);
+            CloseHandle (stderrHandle);
+            throw std::runtime_error (windowsLastErrorMessage ("UpdateProcThreadAttribute").toStdString());
+        }
 
         PROCESS_INFORMATION processInfo {};
         auto commandLine = wideNullTerminatedString (windowsCommandLineForApp (app, appArgs));
@@ -279,12 +332,14 @@
                                         nullptr,
                                         nullptr,
                                         TRUE,
-                                        CREATE_UNICODE_ENVIRONMENT,
+                                        CREATE_UNICODE_ENVIRONMENT | EXTENDED_STARTUPINFO_PRESENT,
                                         environmentBlock.data(),
                                         workingDirectory.data(),
-                                        &startupInfo,
+                                        &startupInfo.StartupInfo,
                                         &processInfo);
 
+        DeleteProcThreadAttributeList (startupInfo.lpAttributeList);
+        CloseHandle (stdinHandle);
         CloseHandle (stdoutHandle);
         CloseHandle (stderrHandle);
 

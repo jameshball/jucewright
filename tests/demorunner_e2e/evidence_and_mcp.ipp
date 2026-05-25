@@ -134,9 +134,16 @@
             juce::StringArray command;
 
         #if JUCE_WINDOWS
+            auto batchFile = tempDirectory().getNonexistentChildFile ("jucewright-demorunner-mcp", ".cmd");
+            juce::String batchText;
+            batchText << "@echo off\r\n"
+                      << "type " << shellQuote (requestFile.getFullPathName())
+                      << " | " << shellQuote (cliPath.getFullPathName()) << " mcp\r\n";
+            require (batchFile.replaceWithText (batchText), "Could not write MCP batch file: " + batchFile.getFullPathName());
+
             command.add ("cmd");
             command.add ("/C");
-            command.add ("type " + shellQuote (requestFile.getFullPathName()) + " | " + shellQuote (cliPath.getFullPathName()) + " mcp");
+            command.add (batchFile.getFullPathName());
         #else
             command.add ("/bin/sh");
             command.add ("-c");
@@ -145,6 +152,9 @@
 
             auto output = runProcess (command, "jucewright mcp", true, 15000).output;
             requestFile.deleteFile();
+        #if JUCE_WINDOWS
+            batchFile.deleteFile();
+        #endif
             return output;
         }
 

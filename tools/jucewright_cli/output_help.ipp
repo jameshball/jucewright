@@ -62,7 +62,7 @@
             << "  jucewright -s <session> uncheck <ref>|[locator options]\n"
             << "  jucewright -s <session> set-checked <ref>|[locator options] true|false\n"
             << "  jucewright -s <session> set-value <ref>|[locator options] <value>\n"
-            << "  jucewright -s <session> select-option <ref>|[locator options] --text name|--index n|--id n\n"
+            << "  jucewright -s <session> select-option <ref>|[locator options] --text name|--index n|--id n [--menu-item name]\n"
             << "  jucewright -s <session> select-tab <ref>|[locator options] --name tab|--index n\n"
             << "  jucewright -s <session> press <key> [--ref m1|locator options]\n"
             << "  jucewright -s <session> key-down <key> [--ref m1]\n"

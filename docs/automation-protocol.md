@@ -574,6 +574,7 @@ jucewright -s MyPlugin uncheck --role toggleButton --name Enabled
 jucewright -s MyPlugin set-checked m1-5 true
 jucewright -s MyPlugin set-value --role slider --name Gain 0.75
 jucewright -s MyPlugin select-option --role comboBox --name Mode --text "Advanced"
+jucewright -s MyPlugin select-option --role menuBar --text "Select Input..." --menu-item "Camera 1"
 jucewright -s MyPlugin select-tab --component-name main.tabs --name Settings
 ```
 
