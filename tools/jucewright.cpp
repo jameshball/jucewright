@@ -387,6 +387,7 @@ int main (int argc, char* argv[])
             auto text = optionValue (args, "--text");
             auto index = optionValue (args, "--index");
             auto id = optionValue (args, "--id");
+            auto menuItem = optionValue (args, "--menu-item");
             auto locator = parseLocatorOptions (args);
             auto ref = !locator.isVoid() ? juce::String() : (args.size() >= 1 ? args[0] : juce::String());
             auto params = object ({ { "ref", ref },
@@ -397,6 +398,9 @@ int main (int argc, char* argv[])
 
             if (id.isNotEmpty())
                 params.getDynamicObject()->setProperty ("id", id.getIntValue());
+
+            if (menuItem.isNotEmpty())
+                params.getDynamicObject()->setProperty ("menuItem", menuItem);
 
             addActionOptionsAndLocator (*params.getDynamicObject(), tempParams, locator);
             printResult (request (*sessionObject, "select_option", params));

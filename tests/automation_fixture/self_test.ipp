@@ -78,7 +78,7 @@
             require (security.getProperty ("artifactRoot").toString() == screenshotDirectory.getFullPathName(),
                      "capabilities returned the wrong artifact root");
 
-            runCli ({ "-s", sessionName, "wait", "--ms", "5500" });
+            runCli ({ "-s", sessionName, "wait", "--ms", "1000" });
 
             auto windows = parseJsonOutput (runCli ({ "-s", sessionName, "windows" }), "windows");
             auto windowsArray = asObject (windows, "windows").getProperty ("windows");
@@ -681,9 +681,16 @@
             juce::StringArray command;
 
         #if JUCE_WINDOWS
+            auto batchFile = tempDirectory().getNonexistentChildFile ("jucewright-mcp", ".cmd");
+            juce::String batchText;
+            batchText << "@echo off\r\n"
+                      << "type " << shellQuote (requestFile.getFullPathName())
+                      << " | " << shellQuote (cliPath.getFullPathName()) << " mcp\r\n";
+            require (batchFile.replaceWithText (batchText), "Could not write MCP batch file: " + batchFile.getFullPathName());
+
             command.add ("cmd");
             command.add ("/C");
-            command.add ("type " + shellQuote (requestFile.getFullPathName()) + " | " + shellQuote (cliPath.getFullPathName()) + " mcp");
+            command.add (batchFile.getFullPathName());
         #else
             command.add ("/bin/sh");
             command.add ("-c");
@@ -692,6 +699,9 @@
 
             auto output = runProcess (command, "jucewright mcp", true);
             requestFile.deleteFile();
+        #if JUCE_WINDOWS
+            batchFile.deleteFile();
+        #endif
             return output;
         }
 

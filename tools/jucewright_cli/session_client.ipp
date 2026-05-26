@@ -126,7 +126,8 @@
                 endpointTimeoutMs = (int) timeout;
         }
 
-        return juce::jlimit (5000, 35000, endpointTimeoutMs + 2000);
+        const int responseMarginMs = method == "wait" ? 10000 : 2000;
+        return juce::jlimit (5000, 40000, endpointTimeoutMs + responseMarginMs);
     }
 
     juce::String endpointErrorMessage (juce::DynamicObject& responseObject)
