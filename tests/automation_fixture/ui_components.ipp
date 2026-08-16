@@ -15,6 +15,29 @@
         std::function<void (int, const juce::String&)> onCurrentTabChanged;
     };
 
+    class ScreenshotPopup : public juce::Component
+    {
+    public:
+        ScreenshotPopup()
+        {
+            setName ("Screenshot Popup");
+            setAccessible (true);
+            addToDesktop (juce::ComponentPeer::windowIsTemporary);
+        }
+
+        void paint (juce::Graphics& g) override
+        {
+            g.fillAll (juce::Colours::darkmagenta);
+            g.setColour (juce::Colours::white);
+            g.drawText ("Popup Alpha\nPopup Beta", getLocalBounds().reduced (8), juce::Justification::centredLeft);
+        }
+
+        std::unique_ptr<juce::AccessibilityHandler> createAccessibilityHandler() override
+        {
+            return std::make_unique<juce::AccessibilityHandler> (*this, juce::AccessibilityRole::popupMenu);
+        }
+    };
+
     class ControlsPage : public juce::Component
     {
     public:
@@ -99,6 +122,23 @@
             adjacentButton.setComponentID ("controls.nearbyAction");
             addAndMakeVisible (adjacentButton);
 
+            popupButton.setButtonText ("Open Popup Menu");
+            popupButton.setName ("controls.popupButton");
+            popupButton.setComponentID ("controls.popupButton");
+            addAndMakeVisible (popupButton);
+
+            popupButton.onClick = [this] {
+                if (popup != nullptr)
+                {
+                    popup.reset();
+                    return;
+                }
+
+                popup = std::make_unique<ScreenshotPopup>();
+                popup->setBounds (popupButton.getScreenBounds().translated (0, popupButton.getHeight()).withSize (180, 70));
+                popup->setVisible (true);
+            };
+
             adjacentEditor.setComponentID ("controls.adjacentEditor");
             addAndMakeVisible (adjacentEditor);
 
@@ -121,7 +161,10 @@
         {
             auto area = getLocalBounds().reduced (16);
             title.setBounds (area.removeFromTop (28));
-            goEditor.setBounds (area.removeFromTop (34).removeFromLeft (140));
+            auto navigationRow = area.removeFromTop (34);
+            goEditor.setBounds (navigationRow.removeFromLeft (140));
+            navigationRow.removeFromLeft (8);
+            popupButton.setBounds (navigationRow.removeFromLeft (180));
             area.removeFromTop (10);
             toggle.setBounds (area.removeFromTop (30).removeFromLeft (180));
             area.removeFromTop (10);
@@ -153,11 +196,13 @@
         juce::TextButton duplicateB;
         juce::TextButton disabled;
         juce::TextButton adjacentButton;
+        juce::TextButton popupButton;
         juce::TextEditor adjacentEditor;
         juce::Component compositeToggleHost;
         juce::ToggleButton compositeToggle;
         OptionsModel optionsModel;
         juce::ListBox optionList;
+        std::unique_ptr<ScreenshotPopup> popup;
 
     private:
         juce::Label title;
@@ -261,7 +306,9 @@
 
             auto code = key.getKeyCode();
 
-            if (code > 0 && code < 128)
+            if (code >= juce::KeyPress::F1Key && code <= juce::KeyPress::F35Key)
+                result << "F" << code - juce::KeyPress::F1Key + 1;
+            else if (code > 0 && code < 128)
                 result << juce::String::charToString ((juce::juce_wchar) juce::CharacterFunctions::toUpperCase ((juce::juce_wchar) code));
             else
                 result << juce::String (code);

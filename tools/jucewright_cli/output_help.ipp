@@ -44,7 +44,7 @@
             << "  jucewright -s <session> count [locator options] [--timeout-ms n]\n"
             << "  jucewright -s <session> describe <ref>|[locator options] [--depth n] [--full|--interesting|--minimal] [--timeout-ms n]\n"
             << "  jucewright -s <session> snapshot [--json|--format text|json] [--full|--interesting|--minimal] [--depth n] [--ref ref] [locator options] [--timeout-ms n]\n"
-            << "  jucewright -s <session> screenshot [--target root|--ref m1-1] [--source auto|component|native] [--base64|--no-base64] [--clip-x n --clip-y n --clip-w n --clip-h n] [--timeout-ms n] [locator options] --file /tmp/root.png\n"
+            << "  jucewright -s <session> screenshot [--target root|--ref m1-1] [--menu name] [--source auto|component|native] [--base64|--no-base64] [--clip-x n --clip-y n --clip-w n --clip-h n] [--timeout-ms n] [locator options] --file /tmp/root.png\n"
             << "  jucewright -s <session> click <ref>|[locator options] [--button left|right|middle] [--click-count n] [--position x,y]\n"
             << "  jucewright -s <session> dblclick <ref>|[locator options]\n"
             << "  jucewright -s <session> right-click <ref>|[locator options] [--menu-item name]\n"

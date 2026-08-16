@@ -555,7 +555,10 @@
             auto windows = automationWindows();
 
             if (windows.size() <= 1)
-                return root != nullptr ? serializeComponent (*root, 0, maxDepth) : juce::var();
+            {
+                auto* rootComponent = root.getComponent();
+                return rootComponent != nullptr ? serializeComponent (*rootComponent, 0, maxDepth) : juce::var();
+            }
 
             auto* node = new juce::DynamicObject();
             juce::Array<juce::var> children;
@@ -869,4 +872,3 @@
                 children.add (serializeComponent (*child, depth, maxDepth));
             }
         }
-

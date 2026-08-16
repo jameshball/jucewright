@@ -259,7 +259,16 @@
             if (key == "right") return juce::KeyPress::rightKey;
             if (key == "up") return juce::KeyPress::upKey;
             if (key == "down") return juce::KeyPress::downKey;
-            if (key.length() == 1) return key[0];
+
+            if (key.startsWithChar ('f'))
+            {
+                const auto functionKey = key.substring (1).getIntValue();
+
+                if (functionKey >= 1 && functionKey <= 35 && key == "f" + juce::String (functionKey))
+                    return juce::KeyPress::F1Key + functionKey - 1;
+            }
+
+            if (key.length() == 1) return juce::CharacterFunctions::toUpperCase (key[0]);
 
             return 0;
         }

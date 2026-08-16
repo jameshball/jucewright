@@ -216,6 +216,7 @@ int main (int argc, char* argv[])
             auto ref = optionValue (args, "--ref");
             auto target = optionValue (args, "--target", "root");
             auto source = optionValue (args, "--source");
+            auto menu = optionValue (args, "--menu");
             auto clipX = optionValue (args, "--clip-x");
             auto clipY = optionValue (args, "--clip-y");
             auto clipW = optionValue (args, "--clip-w");
@@ -227,6 +228,7 @@ int main (int argc, char* argv[])
             auto params = object ({ { "file", file }, { "ref", ref }, { "target", target } });
 
             if (source.isNotEmpty()) params.getDynamicObject()->setProperty ("source", source);
+            if (menu.isNotEmpty()) params.getDynamicObject()->setProperty ("menu", menu);
             if (clipX.isNotEmpty()) params.getDynamicObject()->setProperty ("clipX", clipX.getIntValue());
             if (clipY.isNotEmpty()) params.getDynamicObject()->setProperty ("clipY", clipY.getIntValue());
             if (clipW.isNotEmpty()) params.getDynamicObject()->setProperty ("clipW", clipW.getIntValue());

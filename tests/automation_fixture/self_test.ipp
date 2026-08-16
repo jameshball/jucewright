@@ -276,6 +276,8 @@
             auto screenshotMetadata = parseJsonOutput (runCli ({ "-s", sessionName, "screenshot", "--target", "root" }), "screenshot metadata");
             require (asObject (screenshotMetadata, "screenshot metadata").getProperty ("base64").isVoid(),
                      "CLI screenshot should omit base64 unless --base64 is passed");
+            require ((int) asObject (screenshotMetadata, "screenshot metadata").getProperty ("capturedTransientWindows") == 0,
+                     "root screenshot should report no transient windows before a popup opens");
             auto screenshotWithBase64 = parseJsonOutput (runCli ({ "-s", sessionName, "screenshot", "--target", "root", "--base64" }), "screenshot base64");
             require (asObject (screenshotWithBase64, "screenshot base64").getProperty ("base64").toString().isNotEmpty(),
                      "CLI screenshot --base64 should include encoded PNG bytes");
@@ -324,6 +326,17 @@
             auto locatorButtonScreenshot = screenshotDirectory.getChildFile ("jucewright-e2e-button-locator.png");
             runCli ({ "-s", sessionName, "screenshot", "--component-id", "nav.editor", "--file", locatorButtonScreenshot.getFullPathName(), "--no-base64" });
             assertPngSize (locatorButtonScreenshot, editorButtonBounds.getWidth(), editorButtonBounds.getHeight(), "locator button screenshot");
+
+            runCli ({ "-s", sessionName, "click", "--component-id", "controls.popupButton", "--position", "10,10" });
+            runCli ({ "-s", sessionName, "wait", "--ms", "250" });
+            auto popupScreenshot = screenshotDirectory.getChildFile ("jucewright-e2e-popup.png");
+            runCli ({ "-s", sessionName, "screenshot", "--target", "root", "--file", popupScreenshot.getFullPathName(), "--no-base64" });
+            auto popupScreenshotMetadata = parseJsonOutput (runCli ({ "-s", sessionName, "screenshot", "--target", "root" }),
+                                                             "popup screenshot metadata");
+            assertPng (popupScreenshot, "popup screenshot");
+            require ((int) asObject (popupScreenshotMetadata, "popup screenshot metadata").getProperty ("capturedTransientWindows") >= 1,
+                     "root screenshot did not composite the open popup menu\n" + runCli ({ "-s", sessionName, "windows" }));
+            runCli ({ "-s", sessionName, "click", "--component-id", "controls.popupButton", "--position", "10,10" });
 
             auto clippedScreenshot = screenshotDirectory.getChildFile ("jucewright-e2e-clip.png");
             runCli ({ "-s",
@@ -559,6 +572,14 @@
             runCli ({ "-s", sessionName, "press", "Control+K", "--component-id", "advanced.inputProbe" });
             snapshot = readSnapshot();
             assertStatus (snapshot, "Status: Key Ctrl+K");
+
+            runCli ({ "-s", sessionName, "press", "Meta+Shift+m", "--component-id", "advanced.inputProbe" });
+            snapshot = readSnapshot();
+            assertStatus (snapshot, "Status: Key Meta+Shift+M");
+
+            runCli ({ "-s", sessionName, "press", "F11", "--component-id", "advanced.inputProbe" });
+            snapshot = readSnapshot();
+            assertStatus (snapshot, "Status: Key F11");
 
             runCli ({ "-s", sessionName, "key-down", "Shift+X", "--component-id", "advanced.inputProbe" });
             snapshot = readSnapshot();

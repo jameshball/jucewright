@@ -34,6 +34,24 @@
             if (target == nullptr)
                 return error ("stale_ref", "Run snapshot again.");
 
+            const auto menuName = getString (params, "menu", {});
+
+            if (menuName.isNotEmpty())
+            {
+                auto* menuBar = findMenuBarComponent (*target);
+
+                if (menuBar == nullptr || menuBar->getModel() == nullptr)
+                    return error ("menu_bar_not_found", "The screenshot target does not contain a menu bar.");
+
+                const auto menuNames = menuBar->getModel()->getMenuBarNames();
+                const auto menuIndex = menuNames.indexOf (menuName, true);
+
+                if (menuIndex < 0)
+                    return error ("menu_not_found", "Menu bar item not found: " + menuName);
+
+                menuBar->showMenu (menuIndex);
+            }
+
             auto area = target->getLocalBounds();
 
             if (!params.getProperty ("clipW").isVoid() || !params.getProperty ("clipH").isVoid())
@@ -61,6 +79,7 @@
             juce::String nativeFailure;
             auto image = juce::Image();
             auto capturedAllOpenGL = true;
+            auto capturedTransientWindows = 0;
             auto sourceUsed = source == "auto" ? juce::String ("component") : source;
 
             if (source == "native")
@@ -90,6 +109,8 @@
             if (image.isNull())
                 return error ("screenshot_failed", nativeFailure.isNotEmpty() ? nativeFailure
                                                                               : juce::String ("Could not create screenshot."));
+
+            capturedTransientWindows = compositeTransientWindows (*target, area, image);
 
             juce::MemoryBlock pngBytes;
             juce::MemoryOutputStream stream (pngBytes, false);
@@ -124,12 +145,28 @@
                                     { "height", image.getHeight() },
                                     { "source", sourceUsed },
                                     { "capturedAllOpenGL", capturedAllOpenGL },
+                                    { "capturedTransientWindows", capturedTransientWindows },
                                     { "file", absolutePath } });
 
             if ((bool) params.getProperty ("includeBase64"))
                 result.getDynamicObject()->setProperty ("base64", juce::Base64::toBase64 (pngBytes.getData(), pngBytes.getSize()));
 
             return result;
+        }
+
+        static juce::MenuBarComponent* findMenuBarComponent (juce::Component& component)
+        {
+            if (auto* menuBar = dynamic_cast<juce::MenuBarComponent*> (&component))
+                return menuBar;
+
+            for (auto* child : component.getChildren())
+            {
+                if (child != nullptr)
+                    if (auto* menuBar = findMenuBarComponent (*child))
+                        return menuBar;
+            }
+
+            return nullptr;
         }
 
         juce::Image createComponentScreenshot (juce::Component& target,
@@ -144,6 +181,75 @@
                 capturedAllOpenGL = compositeOpenGLComponents (target, area, scale, image);
 
             return image;
+        }
+
+        int compositeTransientWindows (juce::Component& target,
+                                       juce::Rectangle<int> area,
+                                       juce::Image& image) const
+        {
+            if (image.isNull() || area.isEmpty())
+                return 0;
+
+            auto* targetTopLevel = target.getTopLevelComponent();
+
+            if (targetTopLevel == nullptr)
+                targetTopLevel = &target;
+
+            const auto globalArea = target.localAreaToGlobal (area);
+            const auto scaleX = (float) image.getWidth() / (float) area.getWidth();
+            const auto scaleY = (float) image.getHeight() / (float) area.getHeight();
+            auto& desktop = juce::Desktop::getInstance();
+            juce::Graphics graphics (image);
+            auto captured = 0;
+
+            for (int i = 0; i < desktop.getNumComponents(); ++i)
+            {
+                auto* component = desktop.getComponent (i);
+
+                if (component == nullptr
+                    || component == targetTopLevel
+                    || !component->isShowing()
+                    || !isTransientScreenshotComponent (*component))
+                {
+                    continue;
+                }
+
+                const auto screenBounds = component->getScreenBounds();
+
+                if (!screenBounds.intersects (globalArea))
+                    continue;
+
+                auto transientImage = component->createComponentSnapshot (component->getLocalBounds(), false, scaleX);
+
+                if (transientImage.isNull())
+                    continue;
+
+                const auto drawBounds = juce::Rectangle<float> {
+                    (float) (screenBounds.getX() - globalArea.getX()) * scaleX,
+                    (float) (screenBounds.getY() - globalArea.getY()) * scaleY,
+                    (float) screenBounds.getWidth() * scaleX,
+                    (float) screenBounds.getHeight() * scaleY
+                };
+                graphics.drawImage (transientImage, drawBounds);
+                ++captured;
+            }
+
+            return captured;
+        }
+
+        static bool isTransientScreenshotComponent (juce::Component& component)
+        {
+            auto* handler = component.getAccessibilityHandler();
+
+            if (handler != nullptr)
+            {
+                const auto role = handler->getRole();
+
+                if (role == juce::AccessibilityRole::popupMenu || role == juce::AccessibilityRole::tooltip)
+                    return true;
+            }
+
+            return type (component).containsIgnoreCase ("PopupMenu");
         }
 
         bool compositeOpenGLComponents (juce::Component& target,

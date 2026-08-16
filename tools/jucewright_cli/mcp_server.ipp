@@ -154,6 +154,7 @@
                                      { "target", object ({ { "type", "string" }, { "default", "root" } }) },
                                      { "ref", stringSchema() },
                                      { "locator", locatorSchema() },
+                                     { "menu", stringSchema() },
                                      { "source", object ({ { "type", "string" },
                                                            { "enum", array ({ "auto", "component", "native" }) },
                                                            { "default", "auto" } }) },

@@ -562,9 +562,15 @@ jucewright -s MyPlugin type m1-8 "hello"
 jucewright -s MyPlugin fill --component-name username "james"
 jucewright -s MyPlugin clear m1-8
 jucewright -s MyPlugin press Return --ref m1-8
+jucewright -s MyPlugin press F11
+jucewright -s MyPlugin press Cmd+Shift+M
 jucewright -s MyPlugin key-down Control+K
 jucewright -s MyPlugin key-up Control+K
 ```
+
+Named keys include arrows, Return, Escape, Backspace, Delete, and F1 through
+F35. Single-letter keycodes are normalized to JUCE's uppercase virtual-key
+form, while the requested modifiers are preserved.
 
 Semantic controls:
 
@@ -619,6 +625,7 @@ jucewright -s MyPlugin screenshot --role slider --name Gain --file gain.png
 jucewright -s MyPlugin screenshot --target root --clip-x 0 --clip-y 0 --clip-w 400 --clip-h 300
 jucewright -s MyPlugin screenshot --target root --source component
 jucewright -s MyPlugin screenshot --target root --source native
+jucewright -s MyPlugin screenshot --target root --menu File --file file-menu.png
 ```
 
 Options:
@@ -628,6 +635,7 @@ Options:
 | `target` | `root` or a window id from `windows`. |
 | `ref` / `locator` | Capture a component instead of a whole window. |
 | `source` | `component`, `native`, or `auto`. CLI and MCP default to `auto`. |
+| `menu` | Open this top-level menu-bar item and capture it atomically with the target. |
 | `file` | Output path. Requires `allowFileWrite=true`. |
 | `clipX`, `clipY`, `clipW`, `clipH` | Component-local clip rectangle. |
 | `scale` | Output scale, greater than 0 and no more than 4. |
@@ -639,6 +647,9 @@ MCP screenshot returns image content by default.
 Component screenshots composite attached JUCE OpenGL component framebuffers into
 the normal JUCE component snapshot where possible. Native screenshots are still
 available when the host platform supports `juce::createSnapshotOfNativeWindow`.
+Root and window screenshots also composite visible JUCE popup menus and tooltips
+that intersect the requested capture area. Screenshot metadata reports the number
+of overlays in `capturedTransientWindows`.
 
 ## Windows, Dialogs, And Popups
 

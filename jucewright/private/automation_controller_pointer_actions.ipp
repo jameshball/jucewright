@@ -44,6 +44,20 @@
 
             if (canUseSemanticClick)
             {
+                if (auto* menuBar = dynamic_cast<juce::MenuBarComponent*> (target->getParentComponent()))
+                {
+                    const auto menuIndex = menuBar->getIndexOfChildComponent (target);
+
+                    if (menuIndex >= 0)
+                    {
+                        menuBar->showMenu (menuIndex);
+                        return snapshotAfterAction();
+                    }
+                }
+            }
+
+            if (canUseSemanticClick)
+            {
                 if (invokeAccessibleClick (*target))
                 {
                     return snapshotAfterAction();
@@ -363,4 +377,3 @@
 
             return error ("target_not_editable", "Target component does not support semantic clear.");
         }
-
