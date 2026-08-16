@@ -264,8 +264,14 @@
             {
                 const auto functionKey = key.substring (1).getIntValue();
 
-                if (functionKey >= 1 && functionKey <= 35 && key == "f" + juce::String (functionKey))
-                    return juce::KeyPress::F1Key + functionKey - 1;
+                if (key == "f" + juce::String (functionKey))
+                {
+                    if (functionKey >= 1 && functionKey <= 24)
+                        return juce::KeyPress::F1Key + functionKey - 1;
+
+                    if (functionKey >= 25 && functionKey <= 35)
+                        return juce::KeyPress::F25Key + functionKey - 25;
+                }
             }
 
             if (key.length() == 1) return juce::CharacterFunctions::toUpperCase (key[0]);

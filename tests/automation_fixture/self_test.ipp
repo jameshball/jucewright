@@ -585,6 +585,10 @@
             snapshot = readSnapshot();
             assertStatus (snapshot, "Status: Key F11");
 
+            runCli ({ "-s", sessionName, "press", "F25", "--component-id", "advanced.inputProbe" });
+            snapshot = readSnapshot();
+            assertStatus (snapshot, "Status: Key F25");
+
             runCli ({ "-s", sessionName, "key-down", "Shift+X", "--component-id", "advanced.inputProbe" });
             snapshot = readSnapshot();
             assertStatus (snapshot, "Status: Key Shift+X");

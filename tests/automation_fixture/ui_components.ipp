@@ -306,8 +306,10 @@
 
             auto code = key.getKeyCode();
 
-            if (code >= juce::KeyPress::F1Key && code <= juce::KeyPress::F35Key)
+            if (code >= juce::KeyPress::F1Key && code <= juce::KeyPress::F24Key)
                 result << "F" << code - juce::KeyPress::F1Key + 1;
+            else if (code >= juce::KeyPress::F25Key && code <= juce::KeyPress::F35Key)
+                result << "F" << code - juce::KeyPress::F25Key + 25;
             else if (code > 0 && code < 128)
                 result << juce::String::charToString ((juce::juce_wchar) juce::CharacterFunctions::toUpperCase ((juce::juce_wchar) code));
             else
