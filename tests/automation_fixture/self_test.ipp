@@ -575,7 +575,11 @@
 
             runCli ({ "-s", sessionName, "press", "Meta+Shift+m", "--component-id", "advanced.inputProbe" });
             snapshot = readSnapshot();
+           #if JUCE_MAC
             assertStatus (snapshot, "Status: Key Meta+Shift+M");
+           #else
+            assertStatus (snapshot, "Status: Key Ctrl+Shift+M");
+           #endif
 
             runCli ({ "-s", sessionName, "press", "F11", "--component-id", "advanced.inputProbe" });
             snapshot = readSnapshot();
