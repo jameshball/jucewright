@@ -55,7 +55,14 @@
 
             auto listOutput = runCli ({ "list" });
             require (listOutput.contains (juce::String (sessionName) + " "), "CLI list did not show the automation_fixture process");
-            auto listedPid = listOutput.fromFirstOccurrenceOf ("pid=", false, false)
+            juce::String sessionLine;
+            for (const auto& line : juce::StringArray::fromLines(listOutput)) {
+                if (line.startsWith(juce::String(sessionName) + " ")) {
+                    sessionLine = line;
+                    break;
+                }
+            }
+            auto listedPid = sessionLine.fromFirstOccurrenceOf ("pid=", false, false)
                                        .upToFirstOccurrenceOf (" ", false, false)
                                        .trim();
             require (listedPid.isNotEmpty() && listedPid.containsOnly ("0123456789"), "CLI list did not expose a targetable pid\n" + listOutput);
@@ -250,6 +257,24 @@
             auto disabledClick = runCliExpectFailure ({ "-s", sessionName, "click", "--component-name", "controls.disabled", "--timeout-ms", "100" });
             require (disabledClick.contains ("target_disabled") || disabledClick.contains ("disabled"),
                      "disabled target should fail actionability\n" + disabledClick);
+
+            auto clickThroughTrial = runCli({ "-s", sessionName, "click", "--component-id", "controls.power", "--trial" });
+            require(clickThroughTrial.contains("actionability"),
+                    "An overlay with setInterceptsMouseClicks(false, false) must not block the button beneath it\n" + clickThroughTrial);
+            auto hitTestTrial = runCli({ "-s", sessionName, "click", "--component-id", "controls.popupButton", "--trial" });
+            require(hitTestTrial.contains("actionability"),
+                    "An overlay whose hitTest rejects the button centre must not block the button\n" + hitTestTrial);
+
+            auto menuTrial = runCli({ "-s", sessionName, "click", "--role", "menuItem", "--name", "Fixture Menu", "--exact", "--trial", "--timeout-ms", "3000" });
+            require(menuTrial.contains("actionability"), "Menu bar accessibility proxies must receive trial clicks\n" + menuTrial);
+            auto unopenedMenu = readLocator({ "--component-id", "controls.title", "--value", "Fixture Menu activated", "--exact" });
+            require((int) asObject(unopenedMenu, "inactive fixture menu").getProperty("count") == 0,
+                    "Trial click must not activate the menu");
+            runCli({ "-s", sessionName, "click", "--role", "menuItem", "--name", "Fixture Menu", "--exact", "--timeout-ms", "3000" });
+            // Observe JUCE's activation callback, which persists even if native focus
+            // changes dismiss the popup before the next CLI process runs.
+            runCli({ "-s", sessionName, "wait-for-locator", "--component-id", "controls.title", "--value", "Fixture Menu activated", "--exact", "--timeout-ms", "3000" });
+            runCli({ "-s", sessionName, "press", "Escape" });
 
             auto trialClick = runCli ({ "-s", sessionName, "click", "--component-name", "nav.editor", "--trial" });
             require (trialClick.contains ("actionability"), "trial click should report actionability without executing\n" + trialClick);

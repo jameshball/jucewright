@@ -519,6 +519,10 @@ Actionability checks include:
 - target has non-empty bounds
 - target receives pointer events at its center
 
+Pointer targeting respects JUCE `Component::hitTest()` and
+`setInterceptsMouseClicks()`, so click-through overlays do not block controls
+beneath them.
+
 `force` bypasses actionability checks. `trial` reports actionability without
 performing the action.
 
