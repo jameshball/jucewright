@@ -113,6 +113,7 @@
         juce::Array<ComponentRef> refs;
         int generation = 0;
         bool traceEnabled = false;
+        bool includeActionSnapshot = true;
         static constexpr int protocolVersion = 1;
 
         void run() override
@@ -435,8 +436,8 @@
                    || code == "target_not_receiving_events";
         }
 
-        juce::var dispatch (const juce::String& method, juce::DynamicObject& params)
-        {
+        juce::var dispatch (const juce::String& method, juce::DynamicObject& params) {
+            const juce::ScopedValueSetter<bool> snapshotScope(includeActionSnapshot, getBool(params, "snapshot", true));
             if (method == "ping")
                 return object ({ { "status", "ok" } });
 
