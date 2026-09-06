@@ -519,6 +519,10 @@ Actionability checks include:
 - target has non-empty bounds
 - target receives pointer events at its center
 
+Pointer targeting respects JUCE `Component::hitTest()` and
+`setInterceptsMouseClicks()`, so click-through overlays do not block controls
+beneath them.
+
 `force` bypasses actionability checks. `trial` reports actionability without
 performing the action.
 
@@ -759,3 +763,13 @@ jucewright -s juce_demorunner screenshot --target root --file startup.png --no-b
 The DemoRunner E2E harness writes copied evidence to
 `JUCEWRIGHT_DEMORUNNER_ARTIFACT_DIR` when set, otherwise to a temp directory
 named `jucewright-demorunner-e2e`.
+
+### Lightweight action responses
+
+Raw endpoint action requests may set `params.snapshot` to `false` to return
+`{"performed": true}` instead of automatically serializing the component tree.
+The default remains a snapshot. This is useful for paced input diagnostics; it
+does not skip actionability checks or change explicit `snapshot` requests.
+Response latency measures dispatch and action completion, not visible frame
+presentation. The endpoint serves one request per TCP connection, so a persistent
+client process should reconnect for each request rather than launch a CLI per event.

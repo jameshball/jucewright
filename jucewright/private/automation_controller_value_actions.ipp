@@ -781,8 +781,10 @@
             return snapshotAfterAction();
         }
 
-        juce::var snapshotAfterAction()
-        {
+        juce::var snapshotAfterAction() {
+            if (!includeActionSnapshot) {
+                return object({ { "performed", true } });
+            }
             juce::DynamicObject params;
             params.setProperty ("format", "text");
             params.setProperty ("depth", 8);

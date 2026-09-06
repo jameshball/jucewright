@@ -68,13 +68,36 @@
             std::function<void (const juce::String&)> onSelected;
         };
 
+        class FixtureMenuModel : public juce::MenuBarModel {
+        public:
+            juce::StringArray getMenuBarNames() override { return { "Fixture Menu" }; }
+
+            juce::PopupMenu getMenuForIndex(int, const juce::String&) override {
+                juce::PopupMenu menu;
+                menu.addItem(1, "Fixture Action");
+                return menu;
+            }
+
+            void menuItemSelected(int, int) override {}
+
+            void menuBarActivated(bool active) override {
+                if (active && onActivated) {
+                    onActivated();
+                }
+            }
+
+            std::function<void()> onActivated;
+        };
+
         ControlsPage()
         {
             setName ("Controls Page");
+            addAndMakeVisible(menuBar);
 
             title.setText ("Controls Page", juce::dontSendNotification);
             title.setName ("controls.title");
             title.setComponentID ("controls.title");
+            menuModel.onActivated = [this] { title.setText("Fixture Menu activated", juce::dontSendNotification); };
             addAndMakeVisible (title);
 
             goEditor.setButtonText ("Go Editor");
@@ -155,12 +178,19 @@
             optionList.setModel (&optionsModel);
             optionList.setRowHeight (24);
             addAndMakeVisible (optionList);
+
+            pointerTransparentOverlay.setInterceptsMouseClicks(false, false);
+            pointerTransparentOverlay.addAndMakeVisible(overlayChild);
+            addAndMakeVisible(pointerTransparentOverlay);
+            addAndMakeVisible(hitTestOverlay);
         }
 
         void resized() override
         {
             auto area = getLocalBounds().reduced (16);
-            title.setBounds (area.removeFromTop (28));
+            auto titleRow = area.removeFromTop(28);
+            menuBar.setBounds(titleRow.removeFromRight(160));
+            title.setBounds(titleRow);
             auto navigationRow = area.removeFromTop (34);
             goEditor.setBounds (navigationRow.removeFromLeft (140));
             navigationRow.removeFromLeft (8);
@@ -186,6 +216,9 @@
             compositeToggle.setBounds (compositeToggleHost.getLocalBounds().removeFromLeft (30));
             area.removeFromTop (10);
             optionList.setBounds (area.removeFromTop (82).removeFromLeft (180));
+            pointerTransparentOverlay.setBounds(toggle.getBounds());
+            overlayChild.setBounds(pointerTransparentOverlay.getLocalBounds());
+            hitTestOverlay.setBounds(popupButton.getBounds());
         }
 
         juce::TextButton goEditor;
@@ -205,6 +238,17 @@
         std::unique_ptr<ScreenshotPopup> popup;
 
     private:
+        class BorderOverlay : public juce::Component {
+        public:
+            bool hitTest(int x, int y) override {
+                return !getLocalBounds().reduced(4).contains(x, y);
+            }
+        };
+
+        FixtureMenuModel menuModel;
+        juce::MenuBarComponent menuBar { &menuModel };
+        juce::Component pointerTransparentOverlay, overlayChild;
+        BorderOverlay hitTestOverlay;
         juce::Label title;
     };
 

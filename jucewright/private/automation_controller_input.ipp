@@ -94,7 +94,15 @@
 
             auto* found = findComponentAt (*coordinateRoot, rootBounds.getCentre());
 
-            return found == &target || (found != nullptr && target.isParentOf (found));
+            if (found == &target || (found != nullptr && target.isParentOf(found))) {
+                return true;
+            }
+
+            // Menu items are accessibility proxies; the menu bar receives their mouse events.
+            auto* handler = target.getAccessibilityHandler();
+            return found == target.getParentComponent()
+                && dynamic_cast<juce::MenuBarComponent*>(found) != nullptr
+                && handler != nullptr && handler->getRole() == juce::AccessibilityRole::menuItem;
         }
 
         bool invokeAccessibleClick (juce::Component& target) const
@@ -389,23 +397,8 @@
                               true });
         }
 
-        juce::Component* findComponentAt (juce::Component& component, juce::Point<int> localPoint) const
-        {
-            for (int i = component.getNumChildComponents(); --i >= 0;)
-            {
-                auto* child = component.getChildComponent (i);
-
-                if (child == nullptr || !child->isVisible())
-                    continue;
-
-                if (!child->getBounds().contains (localPoint))
-                    continue;
-
-                if (auto* found = findComponentAt (*child, child->getLocalPoint (&component, localPoint)))
-                    return found;
-            }
-
-            return component.getLocalBounds().contains (localPoint) ? &component : nullptr;
+        juce::Component* findComponentAt(juce::Component& component, juce::Point<int> localPoint) const {
+            return component.getComponentAt(localPoint);
         }
 
         void synthesizeClickAt (juce::Component& coordinateRoot, juce::Point<int> rootPoint)
@@ -527,4 +520,3 @@
 
             return component.getLocalBounds();
         }
-
