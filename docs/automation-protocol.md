@@ -773,3 +773,7 @@ does not skip actionability checks or change explicit `snapshot` requests.
 Response latency measures dispatch and action completion, not visible frame
 presentation. The endpoint serves one request per TCP connection, so a persistent
 client process should reconnect for each request rather than launch a CLI per event.
+
+### Native presentation during component screenshots
+
+`jucewright::isTakingComponentScreenshot()` is true only while Jucewright paints a component screenshot on the calling thread. Custom native or GPU-backed components may use it in `paint()` to draw their last completed presentation frame into the snapshot. Normal window painting remains unchanged. The scope is restored after capture, including nested captures. This supports native layers that are not represented by a JUCE OpenGL framebuffer.

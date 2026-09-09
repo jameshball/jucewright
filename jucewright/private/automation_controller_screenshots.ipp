@@ -174,6 +174,7 @@
                                                float scale,
                                                bool& capturedAllOpenGL) const
         {
+            const juce::ScopedValueSetter<bool> screenshotScope(detail::takingComponentScreenshot, true);
             auto image = target.createComponentSnapshot (area, false, scale);
             capturedAllOpenGL = true;
 

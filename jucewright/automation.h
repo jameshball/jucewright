@@ -17,6 +17,16 @@
 
 namespace jucewright
 {
+    namespace detail {
+        inline thread_local bool takingComponentScreenshot = false;
+    }
+
+    // Native/GPU-backed components can paint their last presented pixels during
+    // a screenshot, without paying for CPU readback during normal window painting.
+    [[nodiscard]] inline bool isTakingComponentScreenshot() {
+        return detail::takingComponentScreenshot;
+    }
+
     struct AutomationOptions
     {
         juce::String sessionName;
