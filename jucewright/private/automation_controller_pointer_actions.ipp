@@ -3,6 +3,11 @@
             if (!options.allowInput)
                 return error ("input_disabled", "Automation input is disabled for this session.");
 
+            juce::ModifierKeys keyboardModifiers;
+            if (!parsePointerModifiers(params, keyboardModifiers)) {
+                return error("invalid_modifiers", "modifiers must be a comma-separated string of shift, ctrl, alt, cmd.");
+            }
+
             auto resolution = resolveTarget (params, true, true);
 
             if (!resolution.error.isVoid())
@@ -20,7 +25,8 @@
                 return error ("invalid_click_count", "clickCount must be at least 1.");
 
             auto* target = resolution.component;
-            const auto canUseSemanticClick = buttonName == "left" && clickCount == 1 && !hasClickPosition (params);
+            buttonModifiers = buttonModifiers.withFlags(keyboardModifiers.getRawFlags());
+            const auto canUseSemanticClick = keyboardModifiers.getRawFlags() == 0 && buttonName == "left" && clickCount == 1 && !hasClickPosition (params);
             auto validationError = validateInputTarget (*target, params);
             if (!validationError.isVoid())
                 return validationError;
@@ -74,6 +80,11 @@
             if (!options.allowInput)
                 return error ("input_disabled", "Automation input is disabled for this session.");
 
+            juce::ModifierKeys keyboardModifiers;
+            if (!parsePointerModifiers(params, keyboardModifiers)) {
+                return error("invalid_modifiers", "modifiers must be a comma-separated string of shift, ctrl, alt, cmd.");
+            }
+
             auto resolution = resolveTarget (params, true, true);
 
             if (!resolution.error.isVoid())
@@ -87,14 +98,12 @@
             if (isTrial (params))
                 return actionabilityResult (*target);
 
-            if (auto* button = dynamic_cast<juce::Button*> (target))
-            {
+            auto* button = dynamic_cast<juce::Button*>(target);
+            if (button != nullptr && keyboardModifiers.getRawFlags() == 0) {
                 button->triggerClick();
                 button->triggerClick();
-            }
-            else
-            {
-                synthesizeComponentClick (*target, juce::ModifierKeys(), 2, targetCentreLocal (*target));
+            } else {
+                synthesizeComponentClick (*target, keyboardModifiers.withFlags(juce::ModifierKeys::leftButtonModifier), 2, targetCentreLocal (*target));
             }
 
             return snapshotAfterAction();
@@ -105,6 +114,11 @@
             if (!options.allowInput)
                 return error ("input_disabled", "Automation input is disabled for this session.");
 
+            juce::ModifierKeys keyboardModifiers;
+            if (!parsePointerModifiers(params, keyboardModifiers)) {
+                return error("invalid_modifiers", "modifiers must be a comma-separated string of shift, ctrl, alt, cmd.");
+            }
+
             auto resolution = resolveTarget (params, true, true);
 
             if (!resolution.error.isVoid())
@@ -118,7 +132,7 @@
             if (isTrial (params))
                 return actionabilityResult (*target);
 
-            synthesizeComponentClick (*target, juce::ModifierKeys (juce::ModifierKeys::rightButtonModifier), 1, targetCentreLocal (*target));
+            synthesizeComponentClick (*target, keyboardModifiers.withFlags(juce::ModifierKeys::rightButtonModifier), 1, targetCentreLocal (*target));
 
             const auto menuItem = getString (params, "menuItem", {});
             if (menuItem.isNotEmpty())

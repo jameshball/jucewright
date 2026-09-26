@@ -298,6 +298,9 @@
 
     void addActionOptions (juce::StringArray& args, juce::DynamicObject& params)
     {
+        if (args.contains("--modifiers")) {
+            params.setProperty("modifiers", optionValue(args, "--modifiers", "invalid-missing-value"));
+        }
         addTimeoutOption (args, params);
 
         if (hasFlag (args, "--force"))
@@ -309,7 +312,7 @@
 
     void copyActionOptions (juce::DynamicObject& source, juce::DynamicObject& destination)
     {
-        for (auto name : { "timeoutMs", "force", "trial" })
+        for (auto name : { "timeoutMs", "force", "trial", "modifiers" })
         {
             const auto value = source.getProperty (name);
 

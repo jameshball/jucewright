@@ -309,6 +309,10 @@
 
         void mouseDown (const juce::MouseEvent& event) override
         {
+            downKeyboard = event.mods.withoutMouseButtons();
+            const auto item = event.x < getWidth() / 2 ? 1 : 2;
+            if (event.mods.isShiftDown()) { selectionMask |= item; } else { selectionMask = item; }
+            selectionCount = ((selectionMask & 1) != 0 ? 1 : 0) + ((selectionMask & 2) != 0 ? 1 : 0);
             pointerHeld = event.mods.isLeftButtonDown();
             heldDrags = 0;
             if (event.mods.isRightButtonDown() && onRightClick)
@@ -319,7 +323,18 @@
             if (pointerHeld && event.mods.isLeftButtonDown()) { ++heldDrags; }
         }
 
-        void mouseUp (const juce::MouseEvent&) override { pointerHeld = false; }
+        void mouseUp(const juce::MouseEvent& event) override {
+            pointerHeld = false;
+            if (downKeyboard.getRawFlags() != 0 && onKeyPressed) {
+                onKeyPressed("Pointer selection=" + juce::String(selectionCount)
+                    + " shift=" + juce::String(event.mods.isShiftDown() ? 1 : 0)
+                    + " alt=" + juce::String(event.mods.isAltDown() ? 1 : 0)
+                    + " ctrl=" + juce::String(event.mods.isCtrlDown() ? 1 : 0)
+                    + " cmd=" + juce::String(event.mods.isCommandDown() ? 1 : 0)
+                    + " matched=" + juce::String(event.mods.withoutMouseButtons() == downKeyboard ? 1 : 0)
+                    + " drags=" + juce::String(heldDrags));
+            }
+        }
 
         void mouseDoubleClick (const juce::MouseEvent&) override
         {
@@ -345,6 +360,8 @@
         std::function<void (const juce::String&)> onKeyPressed;
 
     private:
+        juce::ModifierKeys downKeyboard;
+        int selectionCount = 0, selectionMask = 0;
         bool pointerHeld = false;
         int heldDrags = 0;
         static juce::String describeKey (const juce::KeyPress& key)

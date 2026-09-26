@@ -791,3 +791,16 @@ client process should reconnect for each request rather than launch a CLI per ev
 ### Native presentation during component screenshots
 
 `jucewright::isTakingComponentScreenshot()` is true only while Jucewright paints a component screenshot on the calling thread. Custom native or GPU-backed components may use it in `paint()` to draw their last completed presentation frame into the snapshot. Normal window painting remains unchanged. The scope is restored after capture, including nested captures. This supports native layers that are not represented by a JUCE OpenGL framebuffer.
+
+### Explicit pointer modifiers
+
+`click`, `dblclick`, and `right-click` accept `--modifiers shift,alt`. The corresponding JSON actions and
+MCP tools accept the string property `modifiers`, with comma-separated names
+`shift`, `ctrl`, `alt`, and `cmd` (case-insensitive). Empty or omitted means no
+keyboard modifiers. Unknown names and non-string protocol values return
+`invalid_modifiers`; validation also applies to trial actions.
+
+Modified clicks deliver pointer callbacks rather than a semantic button or
+accessibility invocation. Keyboard flags remain present on mouse down and mouse up; mouse button flags remain independent. Modifiers apply only to
+the specified complete action and do not create persistent keyboard state or
+alter the low-level mouse-down/move/up sequence API.

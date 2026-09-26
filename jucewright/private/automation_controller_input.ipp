@@ -151,6 +151,34 @@
             return false;
         }
 
+        static bool parsePointerModifiers(juce::DynamicObject& params, juce::ModifierKeys& modifiers) {
+            const auto value = params.getProperty("modifiers");
+            if (value.isVoid()) { return true; }
+            if (!value.isString()) { return false; }
+            const auto text = value.toString().trim().toLowerCase();
+            if (text.isEmpty()) { return true; }
+            const auto names = juce::StringArray::fromTokens(text, ",", "");
+            int flags = 0;
+            for (const auto& name : names) {
+                const auto token = name.trim();
+                int flag = 0;
+                if (token == "shift") {
+                    flag = juce::ModifierKeys::shiftModifier;
+                } else if (token == "ctrl") {
+                    flag = juce::ModifierKeys::ctrlModifier;
+                } else if (token == "alt") {
+                    flag = juce::ModifierKeys::altModifier;
+                } else if (token == "cmd") {
+                    flag = juce::ModifierKeys::commandModifier;
+                } else {
+                    return false;
+                }
+                flags |= flag;
+            }
+            modifiers = juce::ModifierKeys(flags);
+            return true;
+        }
+
         static bool parseMouseButton (const juce::String& buttonName, juce::ModifierKeys& modifiers)
         {
             const auto normalized = buttonName.trim().toLowerCase();
@@ -238,7 +266,7 @@
 
             target.mouseUp ({ source,
                               localPoint,
-                              juce::ModifierKeys(),
+                              buttonModifiers.withoutMouseButtons(),
                               0.0f,
                               0.0f,
                               0.0f,

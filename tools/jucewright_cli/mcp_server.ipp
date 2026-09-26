@@ -3,6 +3,10 @@
         return object ({ { "type", "string" } });
     }
 
+    juce::var pointerModifiersSchema() {
+        return object({{"type", "string"}, {"description", "Comma-separated keyboard modifiers: shift, ctrl, alt, cmd. Empty or omitted means none."}});
+    }
+
     juce::var numberSchema()
     {
         return object ({ { "type", "number" } });
@@ -167,7 +171,7 @@
                                      { "includeBase64", booleanSchema() } })),
             tool ("juce_click",
                   "Click a component ref and return a fresh snapshot.",
-                  targetActionToolSchema ({ { "session", stringSchema() },
+                  targetActionToolSchema ({ { "session", stringSchema() }, { "modifiers", pointerModifiersSchema() },
                                             { "ref", stringSchema() },
                                             { "locator", locatorSchema() },
                                             { "button", stringSchema() },
@@ -176,10 +180,10 @@
                                                                     { "properties", object ({ { "x", numberSchema() }, { "y", numberSchema() } }) } }) } })),
             tool ("juce_dblclick",
                   "Double-click a component ref or locator and return a fresh snapshot.",
-                  targetActionToolSchema ({ { "session", stringSchema() }, { "ref", stringSchema() }, { "locator", locatorSchema() } })),
+                  targetActionToolSchema ({ { "session", stringSchema() }, { "modifiers", pointerModifiersSchema() }, { "ref", stringSchema() }, { "locator", locatorSchema() } })),
             tool ("juce_right_click",
                   "Right-click a component ref or locator and return a fresh snapshot.",
-                  targetActionToolSchema ({ { "session", stringSchema() }, { "ref", stringSchema() }, { "locator", locatorSchema() }, { "menuItem", stringSchema() } })),
+                  targetActionToolSchema ({ { "session", stringSchema() }, { "modifiers", pointerModifiersSchema() }, { "ref", stringSchema() }, { "locator", locatorSchema() }, { "menuItem", stringSchema() } })),
             tool ("juce_click_xy",
                   "Click window-local coordinates and return a fresh snapshot.",
                   timedToolSchema ({ { "session", stringSchema() }, { "target", stringSchema() }, { "x", numberSchema() }, { "y", numberSchema() } }, { "x", "y" })),
@@ -239,7 +243,7 @@
                   targetActionToolSchema ({ { "session", stringSchema() }, { "ref", stringSchema() }, { "locator", locatorSchema() }, { "name", stringSchema() }, { "index", numberSchema() } })),
             tool ("juce_drag",
                   "Drag a component by a delta and return a fresh snapshot.",
-                  targetActionToolSchema ({ { "session", stringSchema() },
+                  targetActionToolSchema ({ { "session", stringSchema() }, { "modifiers", pointerModifiersSchema() },
                                             { "ref", stringSchema() },
                                             { "locator", locatorSchema() },
                                             { "dx", numberSchema() },
@@ -249,7 +253,7 @@
                                                                     { "properties", object ({ { "x", numberSchema() }, { "y", numberSchema() } }) } }) } })),
             tool ("juce_drag_to",
                   "Drag a source component to a target component center.",
-                  targetActionToolSchema ({ { "session", stringSchema() },
+                  targetActionToolSchema ({ { "session", stringSchema() }, { "modifiers", pointerModifiersSchema() },
                                             { "ref", stringSchema() },
                                             { "locator", locatorSchema() },
                                             { "targetRef", stringSchema() },
