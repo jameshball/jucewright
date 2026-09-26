@@ -284,8 +284,10 @@
             if (coordinateRoot == nullptr)
                 return;
 
-            if (&target == coordinateRoot)
-            {
+            // Drag containers need real mouse-source state and listener dispatch.
+            // Ordinary controls retain direct semantic mouse callbacks.
+            const bool usesDragContainer = juce::DragAndDropContainer::findParentDragContainerFor(&target) != nullptr;
+            if (&target == coordinateRoot || usesDragContainer) {
                 if (auto* peer = coordinateRoot->getPeer())
                 {
                     const auto toPeerPoint = [peer, coordinateRoot] (juce::Point<int> rootPoint)

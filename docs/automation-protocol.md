@@ -559,6 +559,11 @@ jucewright -s MyPlugin wheel 100 200 --dy -0.5
 jucewright -s MyPlugin drag-xy 100 200 180 260 --steps 8
 ```
 
+Pointer drags inside a `DragAndDropContainer` pass through JUCE's native peer
+input dispatch, including mouse-source state and mouse listeners. Ordinary
+controls continue to receive direct semantic mouse callbacks.
+
+
 Keyboard and text:
 
 ```sh

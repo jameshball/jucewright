@@ -512,7 +512,7 @@
             dragRef (asObject (dragBoxBefore, "advanced.dragBox").getProperty ("ref").toString(), 40, 15, 4);
             snapshot = readSnapshot();
             auto dragBoxAfterBounds = boundsOf (findByComponentName (snapshot, "advanced.dragBox"));
-            require (dragBoxAfterBounds.getX() == dragBoxBeforeBounds.getX() + 40, "drag did not move Drag Box on the x axis");
+            require (dragBoxAfterBounds.getX() == dragBoxBeforeBounds.getX() + 40, "drag did not move Drag Box on the x axis: before=" + dragBoxBeforeBounds.toString() + " after=" + dragBoxAfterBounds.toString());
             require (dragBoxAfterBounds.getY() == dragBoxBeforeBounds.getY() + 15, "drag did not move Drag Box on the y axis");
             assertStatus (snapshot, "steps=4");
 
