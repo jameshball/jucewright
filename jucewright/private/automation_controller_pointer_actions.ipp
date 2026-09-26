@@ -186,7 +186,15 @@
             if (coordinateRoot == nullptr)
                 return error ("window_not_found", "No automation window matched target: " + getString (params, "target", "root"));
 
-            sendPeerMouseEvent (*coordinateRoot, pointFromParams (params, "x", "y"), juce::ModifierKeys(), 0.0f);
+            const bool held = pointerIsHeld();
+            const auto point = pointFromParams (params, "x", "y");
+            if (held) {
+                heldPointerRoot = coordinateRoot;
+                heldPointerPosition = point;
+            }
+            sendPeerMouseEvent (*coordinateRoot, point,
+                                held ? juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier) : juce::ModifierKeys(),
+                                held ? 1.0f : 0.0f);
             return snapshotAfterAction();
         }
 
@@ -200,8 +208,13 @@
             if (coordinateRoot == nullptr)
                 return error ("window_not_found", "No automation window matched target: " + getString (params, "target", "root"));
 
+            if (coordinateRoot->getPeer() == nullptr) {
+                return error ("window_not_found", "The automation window has no native peer.");
+            }
+            heldPointerRoot = isDown ? coordinateRoot : nullptr;
+            heldPointerPosition = pointFromParams (params, "x", "y");
             sendPeerMouseEvent (*coordinateRoot,
-                                pointFromParams (params, "x", "y"),
+                                heldPointerPosition,
                                 isDown ? juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier) : juce::ModifierKeys(),
                                 isDown ? 1.0f : 0.0f);
             return snapshotAfterAction();

@@ -418,6 +418,24 @@
             }
         }
 
+        bool pointerIsHeld() {
+            // Native input can end an automation drag between requests. Never
+            // resurrect a released button on the next automated mouse move.
+            if (heldPointerRoot == nullptr || !juce::Desktop::getInstance().getMainMouseSource().isDragging()) {
+                heldPointerRoot = nullptr;
+                return false;
+            }
+            return true;
+        }
+
+        void releaseHeldPointer() {
+            auto heldRoot = heldPointerRoot;
+            heldPointerRoot = nullptr;
+            if (heldRoot != nullptr) {
+                sendPeerMouseEvent (*heldRoot, heldPointerPosition, juce::ModifierKeys(), 0.0f);
+            }
+        }
+
         void sendPeerMouseEvent (juce::Component& coordinateRoot, juce::Point<int> rootPoint, juce::ModifierKeys modifiers, float pressure)
         {
             if (root == nullptr)

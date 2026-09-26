@@ -309,9 +309,17 @@
 
         void mouseDown (const juce::MouseEvent& event) override
         {
+            pointerHeld = event.mods.isLeftButtonDown();
+            heldDrags = 0;
             if (event.mods.isRightButtonDown() && onRightClick)
                 onRightClick();
         }
+
+        void mouseDrag (const juce::MouseEvent& event) override {
+            if (pointerHeld && event.mods.isLeftButtonDown()) { ++heldDrags; }
+        }
+
+        void mouseUp (const juce::MouseEvent&) override { pointerHeld = false; }
 
         void mouseDoubleClick (const juce::MouseEvent&) override
         {
@@ -321,8 +329,13 @@
 
         bool keyPressed (const juce::KeyPress& key) override
         {
-            if (onKeyPressed)
-                onKeyPressed (describeKey (key));
+            if (onKeyPressed) {
+                if (key == juce::KeyPress::escapeKey) {
+                    onKeyPressed ("Escape held=" + juce::String (pointerHeld ? "true" : "false") + " drags=" + juce::String (heldDrags));
+                } else {
+                    onKeyPressed (describeKey (key));
+                }
+            }
 
             return true;
         }
@@ -332,6 +345,8 @@
         std::function<void (const juce::String&)> onKeyPressed;
 
     private:
+        bool pointerHeld = false;
+        int heldDrags = 0;
         static juce::String describeKey (const juce::KeyPress& key)
         {
             juce::String result;

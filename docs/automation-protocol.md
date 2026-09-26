@@ -559,6 +559,15 @@ jucewright -s MyPlugin wheel 100 200 --dy -0.5
 jucewright -s MyPlugin drag-xy 100 200 180 260 --steps 8
 ```
 
+Low-level `mouse-down`, `mouse-move` (or `hover`), and `mouse-up` form a
+persistent left-button gesture across requests. Moves preserve the held button;
+keyboard actions such as `press Escape` do not release it. Send `mouse-up` to
+finish the gesture. Standalone click/drag/drop actions and menu/option selection return
+`pointer_button_held` until it is released. Failed requests leave the gesture
+available for a subsequent `mouse-up`; changing or clearing the attached root,
+or shutting down automation, releases it. Native input that releases the mouse
+also ends the held state.
+
 Pointer drags inside a `DragAndDropContainer` pass through JUCE's native peer
 input dispatch, including mouse-source state and mouse listeners. Ordinary
 controls continue to receive direct semantic mouse callbacks.

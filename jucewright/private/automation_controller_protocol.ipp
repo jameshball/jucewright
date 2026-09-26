@@ -39,10 +39,12 @@
 
             waitForThreadToStop();
             removeAdvertisement();
+            releaseHeldPointer();
         }
 
         void updateRoot (juce::Component& newRoot)
         {
+            releaseHeldPointer();
             root = &newRoot;
 
             if (options.advertise)
@@ -51,6 +53,7 @@
 
         void clearRoot()
         {
+            releaseHeldPointer();
             root = nullptr;
         }
 
@@ -102,6 +105,8 @@
         };
 
         juce::Component::SafePointer<juce::Component> root;
+        juce::Component::SafePointer<juce::Component> heldPointerRoot;
+        juce::Point<int> heldPointerPosition;
         AutomationOptions options;
         std::unique_ptr<juce::StreamingSocket> listener;
         juce::CriticalSection activeClientLock;
@@ -438,6 +443,14 @@
 
         juce::var dispatch (const juce::String& method, juce::DynamicObject& params) {
             const juce::ScopedValueSetter<bool> snapshotScope(includeActionSnapshot, getBool(params, "snapshot", true));
+            // Standalone pointer actions must not silently release or replace
+            // an explicit mouse-down/move/up sequence. Read-only and key actions
+            // remain available, including Escape while a drag is held.
+            if (pointerIsHeld() && (method == "click" || method == "dblclick" || method == "right_click"
+                || method == "click_xy" || method == "drag" || method == "drag_xy" || method == "drag_to"
+                || method == "drop" || method == "drop_files" || method == "select_option")) {
+                return error ("pointer_button_held", "Release the held pointer with mouse_up before starting another pointer action.");
+            }
             if (method == "ping")
                 return object ({ { "status", "ok" } });
 

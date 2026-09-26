@@ -519,6 +519,23 @@
             runCli ({ "-s", sessionName, "hover", juce::String (dragBoxAfterBounds.getCentreX()), juce::String (dragBoxAfterBounds.getCentreY()) });
             runCli ({ "-s", sessionName, "mouse-down", juce::String (dragBoxAfterBounds.getCentreX()), juce::String (dragBoxAfterBounds.getCentreY()) });
             runCli ({ "-s", sessionName, "mouse-up", juce::String (dragBoxAfterBounds.getCentreX()), juce::String (dragBoxAfterBounds.getCentreY()) });
+            // Low-level movement must preserve the peer's mouse capture. Escape
+            // is sent before release, as required to cancel an in-progress edit.
+            const auto pointerProbeBounds = boundsOf (findByComponentName (readSnapshot(), "advanced.inputProbe"));
+            const auto pointerX = juce::String (pointerProbeBounds.getCentreX());
+            const auto pointerY = juce::String (pointerProbeBounds.getCentreY());
+            const auto movedX = juce::String (pointerProbeBounds.getCentreX() + 8);
+            runCli ({ "-s", sessionName, "mouse-down", pointerX, pointerY });
+            const auto heldClickError = runCliExpectFailure ({ "-s", sessionName, "click", "--component-id", "advanced.inputProbe" });
+            require (heldClickError.contains ("pointer_button_held"), "a standalone click must not replace the held pointer sequence");
+            runCli ({ "-s", sessionName, "mouse-move", movedX, pointerY });
+            runCli ({ "-s", sessionName, "press", "Escape", "--component-id", "advanced.inputProbe" });
+            assertStatus (readSnapshot(), "Escape held=true drags=1");
+            runCli ({ "-s", sessionName, "mouse-up", movedX, pointerY });
+            runCli ({ "-s", sessionName, "mouse-move", pointerX, pointerY });
+            runCli ({ "-s", sessionName, "press", "Escape", "--component-id", "advanced.inputProbe" });
+            assertStatus (readSnapshot(), "Escape held=false drags=1");
+
             runCli ({ "-s", sessionName, "wheel", juce::String (dragBoxAfterBounds.getCentreX()), juce::String (dragBoxAfterBounds.getCentreY()), "--dy", "-1" });
             runCli ({ "-s",
                       sessionName,
