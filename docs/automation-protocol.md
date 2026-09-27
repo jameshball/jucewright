@@ -804,3 +804,5 @@ Modified clicks deliver pointer callbacks rather than a semantic button or
 accessibility invocation. Keyboard flags remain present on mouse down and mouse up; mouse button flags remain independent. Modifiers apply only to
 the specified complete action and do not create persistent keyboard state or
 alter the low-level mouse-down/move/up sequence API.
+
+Synthetic component mouse-up callbacks retain the released button in `MouseEvent::mods`, matching JUCE native events. This also preserves context-menu detection on already-selected list rows.

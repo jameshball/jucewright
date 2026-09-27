@@ -266,7 +266,7 @@
 
             target.mouseUp ({ source,
                               localPoint,
-                              buttonModifiers.withoutMouseButtons(),
+                              buttonModifiers,
                               0.0f,
                               0.0f,
                               0.0f,
@@ -412,7 +412,7 @@
 
             target.mouseUp ({ source,
                               end,
-                              juce::ModifierKeys(),
+                              downModifiers,
                               0.0f,
                               0.0f,
                               0.0f,

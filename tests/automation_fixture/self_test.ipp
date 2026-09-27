@@ -528,18 +528,18 @@
             runCli({"-s", sessionName, "click", "--component-id", "advanced.inputProbe", "--position", "4,4"});
             runCli({"-s", sessionName, "click", "--component-id", "advanced.inputProbe", "--modifiers", "shift"});
             assertStatus(readSnapshot(), "Pointer selection=2 shift=1 alt=0");
-            assertStatus(readSnapshot(), "matched=1 drags=0");
+            assertStatus(readSnapshot(), "matched=1 drags=0 left=1");
             const auto modifierError = runCliExpectFailure({"-s", sessionName, "click", "--component-id", "advanced.inputProbe", "--modifiers", "hyper"});
             require(modifierError.contains("invalid_modifiers"), "unknown pointer modifiers must be rejected");
             runCli({"-s", sessionName, "click", "--component-id", "advanced.inputProbe", "--modifiers", "alt", "--trial"});
-            assertStatus(readSnapshot(), "matched=1 drags=0");
+            assertStatus(readSnapshot(), "matched=1 drags=0 left=1");
             const auto modifiedMcp = runMcpBatch({
                 R"({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"fixture","version":"1"}}})",
                 R"({"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"juce_click","arguments":{"session":"automation_fixture","locator":{"componentName":"advanced.inputProbe"},"modifiers":"shift,alt"}}})"
             });
             require(modifiedMcp.isNotEmpty(), "modifier MCP request returned no output");
             assertStatus(readSnapshot(), "Pointer selection=2 shift=1 alt=1");
-            assertStatus(readSnapshot(), "matched=1 drags=0");
+            assertStatus(readSnapshot(), "matched=1 drags=0 left=1");
             runCli ({ "-s", sessionName, "mouse-down", pointerX, pointerY });
             const auto heldClickError = runCliExpectFailure ({ "-s", sessionName, "click", "--component-id", "advanced.inputProbe" });
             require (heldClickError.contains ("pointer_button_held"), "a standalone click must not replace the held pointer sequence");

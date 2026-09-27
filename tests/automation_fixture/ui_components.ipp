@@ -332,7 +332,8 @@
                     + " ctrl=" + juce::String(event.mods.isCtrlDown() ? 1 : 0)
                     + " cmd=" + juce::String(event.mods.isCommandDown() ? 1 : 0)
                     + " matched=" + juce::String(event.mods.withoutMouseButtons() == downKeyboard ? 1 : 0)
-                    + " drags=" + juce::String(heldDrags));
+                    + " drags=" + juce::String(heldDrags)
+                    + " left=" + juce::String(event.mods.isLeftButtonDown() ? 1 : 0));
             }
         }
 
