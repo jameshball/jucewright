@@ -21,6 +21,11 @@ namespace jucewright
         return "jucewright";
     }
 
+#if JUCEWRIGHT_ENABLE_AUTOMATION && JUCE_MAC
+    // Defined in jucewright.mm.
+    void treatApplicationAsFrontmost();
+#endif
+
     Automation::Automation() = default;
 
     Automation::~Automation()
@@ -32,6 +37,9 @@ namespace jucewright
     {
 #if JUCEWRIGHT_ENABLE_AUTOMATION
         controller = std::make_unique<AutomationController> (rootComponent, std::move (options));
+#if JUCE_MAC
+        treatApplicationAsFrontmost();
+#endif
 #else
         juce::ignoreUnused (rootComponent, options);
 #endif
