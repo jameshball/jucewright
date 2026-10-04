@@ -12,11 +12,17 @@ namespace jucewright
 
         NSInteger frontmostOwnWindowNumberAtPoint (id self, SEL selector, NSPoint point, NSInteger below)
         {
+            // As the real lookup does, take the frontmost window a click at the
+            // point would reach, but among this app's windows only (panels too),
+            // passing through click-through ones such as tooltips.
             if (below == 0)
             {
-                for (NSWindow* window in [NSApp orderedWindows])
+                for (NSNumber* number in [NSWindow windowNumbersWithOptions: 0])
                 {
-                    if ([window isVisible] && NSPointInRect (point, [window frame]))
+                    NSWindow* window = [NSApp windowWithWindowNumber: [number integerValue]];
+
+                    if (window != nil && [window isVisible] && ! [window ignoresMouseEvents] && [window alphaValue] > 0
+                        && NSPointInRect (point, [window frame]))
                         return [window windowNumber];
                 }
             }
