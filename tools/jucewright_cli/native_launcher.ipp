@@ -600,6 +600,9 @@
         auto noProfile = hasFlag (args, "--no-profile");
         auto keepFilterState = hasFlag (args, "--keep-filter-state");
         auto keepAudioState = hasFlag (args, "--keep-audio-state");
+        // macOS: open the app without bringing it to the front, so the user can
+        // keep working in another app while it is driven.
+        auto background = hasFlag (args, "--background");
         juce::StringArray extraSettings;
         addRepeatedOptionValues (extraSettings, args, "--copy-setting");
         auto appArgs = remainingArgsAfterDoubleDash (args);
@@ -631,6 +634,11 @@
             profile = prepareJuceProfile (home, sourceHome, appName, extraSettings, ! keepFilterState, ! keepAudioState);
 
         auto launchEnvironment = automationEnvironmentForLaunch (home, artifactDir, sessionName);
+
+        // Tells the app to keep its windows from taking focus from the user.
+        if (background)
+            launchEnvironment.add ("JUCEWRIGHT_BACKGROUND=1");
+
         juce::StringArray command;
 
 #if JUCE_MAC
@@ -640,6 +648,9 @@
             command.add ("/usr/bin/open");
             command.add ("-n");
             command.add ("-F");
+
+            if (background)
+                command.add ("-g");
             command.add ("--stdout");
             command.add (stdoutFile.getFullPathName());
             command.add ("--stderr");

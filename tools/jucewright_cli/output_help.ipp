@@ -34,7 +34,7 @@
             << "Usage:\n"
             << "  jucewright list\n"
             << "  jucewright mcp\n"
-            << "  jucewright launch --app APP_OR_BUNDLE [--session NAME] [--artifact-dir DIR] [--home DIR] [--copy-setting FILE]\n"
+            << "  jucewright launch --app APP_OR_BUNDLE [--session NAME] [--artifact-dir DIR] [--home DIR] [--copy-setting FILE] [--background]\n"
             << "  jucewright prepare-juce-profile --home DIR --app-name NAME [--source-home DIR] [--copy-setting FILE] [--keep-filter-state] [--keep-audio-state]\n"
             << "  jucewright -s <session> capabilities\n"
             << "  jucewright -s <session> windows\n"
