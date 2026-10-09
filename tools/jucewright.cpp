@@ -296,8 +296,10 @@ int main (int argc, char* argv[])
         if (command == "wheel" && args.size() >= 2)
         {
             auto target = optionValue (args, "--target", "root");
-            auto dx = optionValue (args, "--dx", "0").getDoubleValue();
-            auto dy = optionValue (args, "--dy", "0").getDoubleValue();
+            // Deltas as --dx/--dy, or positionally after x and y.
+            const auto positional = [&args] (int index) { return args.size() > index && ! args[index].startsWith ("--") ? args[index] : juce::String(); };
+            auto dx = optionValue (args, "--dx", positional (2).isNotEmpty() ? positional (2) : "0").getDoubleValue();
+            auto dy = optionValue (args, "--dy", positional (3).isNotEmpty() ? positional (3) : "0").getDoubleValue();
             printResult (request (*sessionObject, "wheel", object ({ { "target", target }, { "x", args[0].getIntValue() }, { "y", args[1].getIntValue() }, { "deltaX", dx }, { "deltaY", dy } })));
             return 0;
         }

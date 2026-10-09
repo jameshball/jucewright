@@ -53,7 +53,7 @@
             << "  jucewright -s <session> mouse-move <x> <y> [--target root|window-1]\n"
             << "  jucewright -s <session> mouse-down <x> <y> [--target root|window-1]\n"
             << "  jucewright -s <session> mouse-up <x> <y> [--target root|window-1]\n"
-            << "  jucewright -s <session> wheel <x> <y> --dy amount [--target root|window-1]\n"
+            << "  jucewright -s <session> wheel <x> <y> [dx dy | --dx amount --dy amount] [--target root|window-1]\n"
             << "  jucewright -s <session> drag-xy <x> <y> <toX> <toY> [--target root|window-1] [--steps n]\n"
             << "  jucewright -s <session> type <ref>|[locator options] <text>\n"
             << "  jucewright -s <session> fill <ref>|[locator options] <text>\n"
