@@ -169,21 +169,34 @@
 
             const auto rootPoint = juce::Point<int> { getInt (params, "x", 0), getInt (params, "y", 0) };
 
+            // Keyboard modifiers (Cmd-click, Shift-click) and the right button
+            // go through the real mouse path, as a user's click would.
+            juce::ModifierKeys keys;
+            if (!parsePointerModifiers (params, keys))
+                return error ("invalid_modifiers", "Modifiers must be a comma-separated list of shift, ctrl, alt and cmd.");
+
+            auto button = juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier);
+            const auto buttonName = getString (params, "button", {});
+            if (buttonName.isNotEmpty() && !parseMouseButton (buttonName, button))
+                return error ("invalid_button", "Unknown mouse button: " + buttonName);
+
+            const bool plain = keys.getRawFlags() == 0 && button.isLeftButtonDown();
+
             if (coordinateRoot != nullptr)
             {
                 if (auto* target = findComponentAt (*coordinateRoot, rootPoint))
                 {
                     if (target->isEnabled())
                     {
-                        if (auto* button = dynamic_cast<juce::Button*> (target))
-                            button->triggerClick();
+                        if (auto* toggle = dynamic_cast<juce::Button*> (target); toggle != nullptr && plain)
+                            toggle->triggerClick();
                         else
-                            synthesizeClickAt (*coordinateRoot, rootPoint);
+                            synthesizeClickAt (*coordinateRoot, rootPoint, keys, button);
                     }
                 }
                 else
                 {
-                    synthesizeClickAt (*coordinateRoot, rootPoint);
+                    synthesizeClickAt (*coordinateRoot, rootPoint, keys, button);
                 }
             }
 

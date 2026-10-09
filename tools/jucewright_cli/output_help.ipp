@@ -48,7 +48,7 @@
             << "  jucewright -s <session> click <ref>|[locator options] [--button left|right|middle] [--click-count n] [--position x,y] [--modifiers shift,alt]\n"
             << "  jucewright -s <session> dblclick <ref>|[locator options] [--modifiers shift,alt]\n"
             << "  jucewright -s <session> right-click <ref>|[locator options] [--menu-item name] [--modifiers shift,alt]\n"
-            << "  jucewright -s <session> click-xy <x> <y> [--target root|window-1]\n"
+            << "  jucewright -s <session> click-xy <x> <y> [--modifiers cmd,shift,alt,ctrl] [--button left|right|middle] [--target root|window-1]\n"
             << "  jucewright -s <session> hover <x> <y> [--target root|window-1]\n"
             << "  jucewright -s <session> mouse-move <x> <y> [--target root|window-1]\n"
             << "  jucewright -s <session> mouse-down <x> <y> [--target root|window-1]\n"

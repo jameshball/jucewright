@@ -275,7 +275,12 @@ int main (int argc, char* argv[])
         if (command == "click-xy" && args.size() >= 2)
         {
             auto target = optionValue (args, "--target", "root");
-            printResult (request (*sessionObject, "click_xy", object ({ { "target", target }, { "x", args[0].getIntValue() }, { "y", args[1].getIntValue() } })));
+            auto params = object ({ { "target", target }, { "x", args[0].getIntValue() }, { "y", args[1].getIntValue() } });
+            if (args.contains ("--modifiers"))
+                params.getDynamicObject()->setProperty ("modifiers", optionValue (args, "--modifiers"));
+            if (args.contains ("--button"))
+                params.getDynamicObject()->setProperty ("button", optionValue (args, "--button"));
+            printResult (request (*sessionObject, "click_xy", params));
             return 0;
         }
 

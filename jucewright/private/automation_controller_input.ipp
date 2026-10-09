@@ -431,7 +431,8 @@
             return component.getComponentAt(localPoint);
         }
 
-        void synthesizeClickAt (juce::Component& coordinateRoot, juce::Point<int> rootPoint)
+        void synthesizeClickAt (juce::Component& coordinateRoot, juce::Point<int> rootPoint,
+                                juce::ModifierKeys keys = {}, juce::ModifierKeys button = juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier))
         {
             if (root == nullptr)
                 return;
@@ -440,9 +441,13 @@
             {
                 auto peerPoint = peer->getComponent().getLocalPoint (&coordinateRoot, rootPoint).toFloat();
                 auto now = juce::Time::currentTimeMillis();
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, juce::ModifierKeys(), 0.0f, 0.0f, now);
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier), 1.0f, 0.0f, now + 1);
-                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, juce::ModifierKeys(), 0.0f, 0.0f, now + 2);
+                // Components read keyboard modifiers from the current state.
+                const auto previous = juce::ModifierKeys::currentModifiers;
+                juce::ModifierKeys::currentModifiers = keys;
+                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, keys, 0.0f, 0.0f, now);
+                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, keys.withFlags (button.getRawFlags()), 1.0f, 0.0f, now + 1);
+                peer->handleMouseEvent (juce::MouseInputSource::InputSourceType::mouse, peerPoint, keys, 0.0f, 0.0f, now + 2);
+                juce::ModifierKeys::currentModifiers = previous;
             }
         }
 
