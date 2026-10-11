@@ -605,6 +605,13 @@
         auto background = hasFlag (args, "--background");
         juce::StringArray extraSettings;
         addRepeatedOptionValues (extraSettings, args, "--copy-setting");
+        // NAME=VALUE pairs for the app's environment, after Jucewright's own.
+        juce::StringArray extraEnvironment;
+        addRepeatedOptionValues (extraEnvironment, args, "--env");
+
+        for (const auto& assignment : extraEnvironment)
+            if (! assignment.containsChar ('=') || assignment.startsWithChar ('='))
+                throw std::runtime_error ("--env expects NAME=VALUE, got: " + assignment.toStdString());
         auto appArgs = remainingArgsAfterDoubleDash (args);
 
         if (appPath.isEmpty())
@@ -638,6 +645,8 @@
         // Tells the app to keep its windows from taking focus from the user.
         if (background)
             launchEnvironment.add ("JUCEWRIGHT_BACKGROUND=1");
+
+        launchEnvironment.addArray (extraEnvironment);
 
         juce::StringArray command;
 

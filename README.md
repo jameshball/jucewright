@@ -103,7 +103,8 @@ jucewright launch --app /path/to/App.app --app-name App --session app
 
 On macOS it launches `.app` bundles through `open` with `HOME` and
 `CFFIXED_USER_HOME`; on Linux it sets `HOME` and XDG paths; on Windows it uses
-`CreateProcessW` with an explicit environment block.
+`CreateProcessW` with an explicit environment block. Repeat
+`--env NAME=VALUE` to add variables of your own to the app's environment.
 
 ## Tests
 
