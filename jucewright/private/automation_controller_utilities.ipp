@@ -242,7 +242,9 @@
             }
 
             const auto keyCode = keyCodeForName (keyName);
-            const auto textCharacter = keyName.length() == 1 ? keyName[0] : juce::juce_wchar();
+            // A command shortcut types nothing, as JUCE's peers deliver it, so a
+            // focused text field passes it on rather than inserting the letter.
+            const auto textCharacter = keyName.length() == 1 && !modifiers.isCommandDown() ? keyName[0] : juce::juce_wchar();
             return { juce::KeyPress (keyCode, modifiers, textCharacter) };
         }
 

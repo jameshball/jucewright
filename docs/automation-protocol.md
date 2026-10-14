@@ -588,7 +588,9 @@ jucewright -s MyPlugin key-up Control+K
 
 Named keys include arrows, Return, Escape, Backspace, Delete, and F1 through
 F35. Single-letter keycodes are normalized to JUCE's uppercase virtual-key
-form, while the requested modifiers are preserved.
+form, while the requested modifiers are preserved. A key with the command
+modifier carries no text character, as a real shortcut does, so a focused
+text editor passes `Cmd+S` on to its parents instead of typing `s`.
 
 Semantic controls:
 
